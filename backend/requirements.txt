@@ -1,8 +1,0 @@
-streamlit
-yt-dlp
-faster-whisper
-torch
-
-# Optional extras for summarisation
-transformers
-sentencepiece
