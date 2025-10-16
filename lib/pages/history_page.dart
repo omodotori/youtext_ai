@@ -9,6 +9,7 @@ class HistoryPage extends StatelessWidget {
     required this.tabIndex,
     required this.onTabSelected,
     required this.history,
+    required this.isSignedIn,
     required this.onOpenRecord,
     required this.onDeleteRecord,
   });
@@ -16,6 +17,7 @@ class HistoryPage extends StatelessWidget {
   final int tabIndex;
   final ValueChanged<int> onTabSelected;
   final List<TranscriptionRecord> history;
+  final bool isSignedIn;
   final void Function(TranscriptionRecord record) onOpenRecord;
   final void Function(TranscriptionRecord record) onDeleteRecord;
 
@@ -74,6 +76,17 @@ class HistoryPage extends StatelessWidget {
                     height: 1.4,
                   ),
                 ),
+                if (!isSignedIn) ...[
+                  const SizedBox(height: 20),
+                  Text(
+                    'Sign in with Google to keep transcripts backed up across sessions.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 28),
                 SizedBox(
                   height: 48,
@@ -104,6 +117,10 @@ class HistoryPage extends StatelessWidget {
           tabIndex: tabIndex,
           onTabSelected: onTabSelected,
         ),
+        if (!isSignedIn) ...[
+          const _HistoryHintBanner(),
+          const SizedBox(height: 16),
+        ],
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -252,6 +269,52 @@ class HistoryTile extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _HistoryHintBanner extends StatelessWidget {
+  const _HistoryHintBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.cloud_upload_outlined,
+              color: theme.colorScheme.primary, size: 26),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Keep your transcripts',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Right now everything stays on this device. Sign in when you’re ready to sync projects with your account.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -8,12 +8,22 @@ class ProfilePage extends StatelessWidget {
     required this.tabIndex,
     required this.onTabSelected,
     required this.historyCount,
+    required this.isSignedIn,
+    required this.isAuthenticating,
+    required this.userName,
+    required this.onSignIn,
+    required this.onSignOut,
     required this.onClearHistory,
   });
 
   final int tabIndex;
   final ValueChanged<int> onTabSelected;
   final int historyCount;
+  final bool isSignedIn;
+  final bool isAuthenticating;
+  final String? userName;
+  final VoidCallback onSignIn;
+  final VoidCallback onSignOut;
   final VoidCallback onClearHistory;
 
   @override
@@ -58,20 +68,54 @@ class ProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Text(
-                'YouText demo profile',
+                isSignedIn ? (userName ?? 'Google user') : 'Guest profile',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'Everything stays on-device. Organise and copy transcripts whenever you need them.',
+                isSignedIn
+                    ? 'Projects are linked to your Google account. Actual sync will arrive once backend is ready.'
+                    : 'You are exploring YouText in guest mode. Sign in with Google to keep projects backed up.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurface,
                   height: 1.4,
                 ),
               ),
+              const SizedBox(height: 20),
+              if (isSignedIn)
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: onSignOut,
+                    icon: const Icon(Icons.logout_rounded),
+                    label: const Text('Sign out'),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton.icon(
+                    onPressed: isAuthenticating ? null : onSignIn,
+                    icon: isAuthenticating
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.login_rounded),
+                    label: Text(
+                      isAuthenticating
+                          ? 'Connecting...'
+                          : 'Sign in with Google',
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -105,7 +149,9 @@ class ProfilePage extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Watch history stays private and local to this device.',
+                          isSignedIn
+                              ? 'Your transcripts will sync once cloud save is live.'
+                              : 'History is stored on this device until you sign in.',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurface,
                           ),
@@ -151,6 +197,16 @@ class ProfilePage extends StatelessWidget {
                   ),
                 ],
               ),
+              if (!isSignedIn) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Tip: Sign in to make sure new projects stay linked to your account.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.35,
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,

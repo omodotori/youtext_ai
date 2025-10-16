@@ -14,6 +14,7 @@ class HomePage extends StatelessWidget {
     required this.progress,
     required this.lastResult,
     required this.history,
+    required this.isSignedIn,
     required this.onStartTranscription,
     required this.onOpenResult,
     required this.onCopyRecord,
@@ -26,6 +27,7 @@ class HomePage extends StatelessWidget {
   final double progress;
   final TranscriptionRecord? lastResult;
   final List<TranscriptionRecord> history;
+  final bool isSignedIn;
   final VoidCallback onStartTranscription;
   final void Function(TranscriptionRecord record) onOpenResult;
   final void Function(TranscriptionRecord record) onCopyRecord;
@@ -44,6 +46,10 @@ class HomePage extends StatelessWidget {
           tabIndex: tabIndex,
           onTabSelected: onTabSelected,
         ),
+        if (!isSignedIn) ...[
+          const _GuestModeBanner(),
+          const SizedBox(height: 20),
+        ],
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -144,6 +150,52 @@ class HomePage extends StatelessWidget {
           ],
         ],
       ],
+    );
+  }
+}
+
+class _GuestModeBanner extends StatelessWidget {
+  const _GuestModeBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.cloud_off_outlined,
+              color: theme.colorScheme.primary, size: 26),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Guest mode',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Transcribe without signing in. Sign in with Google later to back up projects and sync them.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -27,6 +27,9 @@ class _YouTextAppState extends State<YouTextApp> {
   bool _isProcessing = false;
   double _progress = 0.0;
   Timer? _progressTimer;
+  bool _isSignedIn = false;
+  bool _isAuthenticating = false;
+  String? _userName;
 
   @override
   void dispose() {
@@ -138,6 +141,7 @@ class _YouTextAppState extends State<YouTextApp> {
           progress: _progress,
           lastResult: _lastResult,
           history: _history,
+          isSignedIn: _isSignedIn,
           onStartTranscription: _startTranscription,
           onOpenResult: _openResult,
           onCopyRecord: _copyRecord,
@@ -147,6 +151,7 @@ class _YouTextAppState extends State<YouTextApp> {
           tabIndex: _tabIndex,
           onTabSelected: _setTab,
           history: _history,
+          isSignedIn: _isSignedIn,
           onOpenRecord: _openResult,
           onDeleteRecord: _deleteRecord,
         );
@@ -155,6 +160,11 @@ class _YouTextAppState extends State<YouTextApp> {
           tabIndex: _tabIndex,
           onTabSelected: _setTab,
           historyCount: _history.length,
+          isSignedIn: _isSignedIn,
+          isAuthenticating: _isAuthenticating,
+          userName: _userName,
+          onSignIn: _signInWithGoogle,
+          onSignOut: _signOut,
           onClearHistory: _clearHistory,
         );
       default:
@@ -181,6 +191,29 @@ class _YouTextAppState extends State<YouTextApp> {
     setState(() {
       _history.clear();
     });
+    _showSnack('History cleared.');
+  }
+
+  Future<void> _signInWithGoogle() async {
+    if (_isAuthenticating || _isSignedIn) return;
+    setState(() => _isAuthenticating = true);
+    await Future<void>.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    setState(() {
+      _isAuthenticating = false;
+      _isSignedIn = true;
+      _userName = 'Demo Google User';
+    });
+    _showSnack('Signed in with Google (stub).');
+  }
+
+  void _signOut() {
+    if (!_isSignedIn) return;
+    setState(() {
+      _isSignedIn = false;
+      _userName = null;
+    });
+    _showSnack('Signed out.');
   }
 
   Future<void> _startTranscription() async {
