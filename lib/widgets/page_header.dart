@@ -67,8 +67,8 @@ class _TabSwitcher extends StatelessWidget {
                       fontWeight:
                           isActive ? FontWeight.w700 : FontWeight.w500,
                       color: isActive
-                          ? const Color(0xFF55426D)
-                          : const Color(0xFF9CA3AF),
+                          ? theme.colorScheme.onSurface
+                          : theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -77,7 +77,7 @@ class _TabSwitcher extends StatelessWidget {
                     height: 3,
                     decoration: BoxDecoration(
                       color: isActive
-                          ? const Color(0xFF60A5FA)
+                          ? theme.colorScheme.secondary
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),

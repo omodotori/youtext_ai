@@ -1,14 +1,45 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'models/app_user.dart';
 import 'models/transcription_record.dart';
+import 'pages/auth/sign_in_page.dart';
+import 'pages/auth/sign_up_page.dart';
 import 'pages/history_page.dart';
 import 'pages/home_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/result_screen.dart';
+
+final ColorScheme _appColorScheme = const ColorScheme.dark(
+  primary: Color(0xFF2563EB),
+  onPrimary: Color(0xFFFFFFFF),
+  primaryContainer: Color(0xFF1D4ED8),
+  onPrimaryContainer: Color(0xFFEFF4FF),
+  secondary: Color(0xFF3B82F6),
+  onSecondary: Color(0xFFFFFFFF),
+  secondaryContainer: Color(0xFF1E3A8A),
+  onSecondaryContainer: Color(0xFFDBEAFE),
+  tertiary: Color(0xFF1D4ED8),
+  onTertiary: Color(0xFFFFFFFF),
+  background: Color(0xFF0B0B0F),
+  onBackground: Color(0xFFFFFFFF),
+  surface: Color(0xFF18181B),
+  onSurface: Color(0xFFFFFFFF),
+  surfaceVariant: Color(0xFF1C1C1E),
+  onSurfaceVariant: Color(0xFF9CA3AF),
+  outline: Color(0xFF2F3138),
+  error: Color(0xFFF87171),
+  onError: Color(0xFFFFFFFF),
+).copyWith(
+  surfaceTint: const Color(0xFF2563EB),
+  surfaceContainerHighest: const Color(0xFF1C1C1E),
+  outlineVariant: const Color(0xFF2F3138),
+);
+
+const Color _scaffoldBackgroundColor = Color(0xFF0E0E10);
 
 void main() => runApp(const YouTextApp());
 
@@ -27,9 +58,12 @@ class _YouTextAppState extends State<YouTextApp> {
   bool _isProcessing = false;
   double _progress = 0.0;
   Timer? _progressTimer;
-  bool _isSignedIn = false;
   bool _isAuthenticating = false;
-  String? _userName;
+  AppUser? _currentUser;
+  final List<AppUser> _registeredUsers = [];
+  final Map<String, String> _userPasswords = {};
+  bool _includeTranscript = true;
+  bool _includeSummary = true;
 
   @override
   void dispose() {
@@ -40,17 +74,7 @@ class _YouTextAppState extends State<YouTextApp> {
 
   @override
   Widget build(BuildContext context) {
-    final baseScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF2563EB),
-      brightness: Brightness.dark,
-    );
-    final colorScheme = baseScheme.copyWith(
-      onSurface: const Color(0xFFFFFFFF),
-      onSurfaceVariant: const Color(0xFFD4DCFF),
-      surface: const Color(0xFF10192C),
-      surfaceContainerHighest: const Color(0xFF1A2439),
-      outlineVariant: const Color(0xFF27324A),
-    );
+    final colorScheme = _appColorScheme;
     final baseTextTheme = ThemeData(brightness: Brightness.dark).textTheme;
     final textTheme = baseTextTheme.apply(
       bodyColor: colorScheme.onSurface,
@@ -60,35 +84,72 @@ class _YouTextAppState extends State<YouTextApp> {
     final theme = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF080C14),
       colorScheme: colorScheme,
+      scaffoldBackgroundColor: _scaffoldBackgroundColor,
       textTheme: textTheme,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF080C14),
+        backgroundColor: _scaffoldBackgroundColor,
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
       cardColor: colorScheme.surface,
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: colorScheme.background,
+        selectedItemColor: colorScheme.primary,
+        unselectedItemColor: colorScheme.onSurfaceVariant,
+        type: BottomNavigationBarType.fixed,
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          textStyle:
+              textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colorScheme.onSurface,
+          side: BorderSide(
+            color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: colorScheme.surfaceVariant,
+        contentTextStyle: textTheme.bodyMedium,
+        behavior: SnackBarBehavior.floating,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF111827),
+        fillColor: colorScheme.surfaceVariant,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF1F2937)),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF1F2937)),
+          borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color.fromRGBO(37, 99, 235, 0.8)),
+          borderSide: BorderSide(color: colorScheme.primary),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
         ),
-        hintStyle: const TextStyle(color: Color(0xFFA7B4D7)),
+        hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
       ),
     );
 
@@ -105,7 +166,7 @@ class _YouTextAppState extends State<YouTextApp> {
           ),
         ),
         bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: const Color(0xFF080C14),
+          backgroundColor: theme.colorScheme.background,
           currentIndex: _tabIndex,
           onTap: _setTab,
           selectedItemColor: theme.colorScheme.primary,
@@ -141,7 +202,11 @@ class _YouTextAppState extends State<YouTextApp> {
           progress: _progress,
           lastResult: _lastResult,
           history: _history,
-          isSignedIn: _isSignedIn,
+          isSignedIn: _currentUser != null,
+          generateTranscript: _includeTranscript,
+          generateSummary: _includeSummary,
+          onToggleGenerateTranscript: _setIncludeTranscript,
+          onToggleGenerateSummary: _setIncludeSummary,
           onStartTranscription: _startTranscription,
           onOpenResult: _openResult,
           onCopyRecord: _copyRecord,
@@ -151,7 +216,7 @@ class _YouTextAppState extends State<YouTextApp> {
           tabIndex: _tabIndex,
           onTabSelected: _setTab,
           history: _history,
-          isSignedIn: _isSignedIn,
+          isSignedIn: _currentUser != null,
           onOpenRecord: _openResult,
           onDeleteRecord: _deleteRecord,
         );
@@ -160,10 +225,12 @@ class _YouTextAppState extends State<YouTextApp> {
           tabIndex: _tabIndex,
           onTabSelected: _setTab,
           historyCount: _history.length,
-          isSignedIn: _isSignedIn,
+          isSignedIn: _currentUser != null,
           isAuthenticating: _isAuthenticating,
-          userName: _userName,
-          onSignIn: _signInWithGoogle,
+          user: _currentUser,
+          onEmailSignIn: _openEmailSignIn,
+          onEmailSignUp: _openEmailSignUp,
+          onGoogleSignIn: _signInWithGoogle,
           onSignOut: _signOut,
           onClearHistory: _clearHistory,
         );
@@ -177,13 +244,40 @@ class _YouTextAppState extends State<YouTextApp> {
     setState(() => _tabIndex = index);
   }
 
+  void _setIncludeTranscript(bool value) {
+    if (_includeTranscript == value) return;
+    if (!value && !_includeSummary) {
+      _showSnack('Select at least one output format.');
+      return;
+    }
+    setState(() => _includeTranscript = value);
+  }
+
+  void _setIncludeSummary(bool value) {
+    if (_includeSummary == value) return;
+    if (!value && !_includeTranscript) {
+      _showSnack('Select at least one output format.');
+      return;
+    }
+    setState(() => _includeSummary = value);
+  }
+
   void _deleteRecord(TranscriptionRecord record) {
     setState(() => _history.removeWhere((item) => item.id == record.id));
   }
 
   void _copyRecord(TranscriptionRecord record) {
-    Clipboard.setData(ClipboardData(text: record.transcript));
-    _showSnack('Transcript copied to clipboard.');
+    if (record.transcript.isNotEmpty) {
+      Clipboard.setData(ClipboardData(text: record.transcript));
+      _showSnack('Transcript copied to clipboard.');
+      return;
+    }
+    if (record.summary.isNotEmpty) {
+      Clipboard.setData(ClipboardData(text: record.summary));
+      _showSnack('Summary copied to clipboard.');
+      return;
+    }
+    _showSnack('Nothing to copy for this result.');
   }
 
   void _clearHistory() {
@@ -195,31 +289,122 @@ class _YouTextAppState extends State<YouTextApp> {
   }
 
   Future<void> _signInWithGoogle() async {
-    if (_isAuthenticating || _isSignedIn) return;
+    if (_isAuthenticating || _currentUser != null) return;
     setState(() => _isAuthenticating = true);
     await Future<void>.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final googleUser = AppUser(
+      id: 'google-$now',
+      email: 'demo-google-user-$now@example.com',
+      displayName: 'Demo Google User',
+    );
     setState(() {
       _isAuthenticating = false;
-      _isSignedIn = true;
-      _userName = 'Demo Google User';
+      _currentUser = googleUser;
+      _registeredUsers.add(googleUser);
     });
     _showSnack('Signed in with Google (stub).');
   }
 
   void _signOut() {
-    if (!_isSignedIn) return;
+    if (_currentUser == null) return;
     setState(() {
-      _isSignedIn = false;
-      _userName = null;
+      _currentUser = null;
     });
     _showSnack('Signed out.');
+  }
+
+  Future<String?> _handleEmailSignIn(String email, String password) async {
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    final key = email.trim().toLowerCase();
+    final storedPassword = _userPasswords[key];
+    if (storedPassword == null) {
+      return 'No account found for this email.';
+    }
+    if (storedPassword != password) {
+      return 'Incorrect password.';
+    }
+    AppUser? user;
+    for (final candidate in _registeredUsers) {
+      if (candidate.email.toLowerCase() == key) {
+        user = candidate;
+        break;
+      }
+    }
+    var added = false;
+    if (user == null) {
+      user = AppUser(
+        id: 'imported-$key',
+        email: email.trim(),
+        displayName: email.trim(),
+      );
+      added = true;
+    }
+    final resolvedUser = user;
+    if (resolvedUser == null) {
+      return 'Application is not ready.';
+    }
+    setState(() {
+      _currentUser = resolvedUser;
+      if (added) {
+        _registeredUsers.add(resolvedUser);
+      }
+    });
+    return null;
+  }
+
+  Future<String?> _handleEmailSignUp(
+    String displayName,
+    String email,
+    String password,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    return 'Registration is not available in this demo build. Please sign in with an existing account or use Google.';
+  }
+
+  Future<void> _openEmailSignIn() async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => SignInPage(
+          onSubmit: _handleEmailSignIn,
+          onGoogleSignIn: _handleGoogleSignInFromForm,
+        ),
+      ),
+    );
+    if (result == true) {
+      _showSnack('Welcome back!');
+    }
+  }
+
+  Future<void> _openEmailSignUp() async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => SignUpPage(
+          onSubmit: _handleEmailSignUp,
+          onGoogleSignIn: _handleGoogleSignInFromForm,
+        ),
+      ),
+    );
+    if (result == true) {
+      _showSnack('Account created.');
+    }
+  }
+
+  Future<bool> _handleGoogleSignInFromForm() async {
+    final before = _currentUser;
+    await _signInWithGoogle();
+    return _currentUser != before;
   }
 
   Future<void> _startTranscription() async {
     final url = _urlController.text.trim();
     if (url.isEmpty) {
       _showSnack('Paste a YouTube link first.');
+      return;
+    }
+    if (!_includeTranscript && !_includeSummary) {
+      _showSnack('Choose what to generate first.');
       return;
     }
     if (_isProcessing) return;
@@ -236,7 +421,11 @@ class _YouTextAppState extends State<YouTextApp> {
     });
 
     try {
-      final record = await _simulateTranscription(url);
+      final record = await _simulateTranscription(
+        url,
+        includeTranscript: _includeTranscript,
+        includeSummary: _includeSummary,
+      );
       _progressTimer?.cancel();
       if (!mounted) return;
       setState(() {
@@ -259,10 +448,13 @@ class _YouTextAppState extends State<YouTextApp> {
     }
   }
 
-  Future<TranscriptionRecord> _simulateTranscription(String url) async {
+  Future<TranscriptionRecord> _simulateTranscription(
+    String url, {
+    required bool includeTranscript,
+    required bool includeSummary,
+  }) async {
     await Future<void>.delayed(const Duration(milliseconds: 1600));
     final title = _extractTitleFromUrl(url);
-    final random = Random();
     final template = <String>[
       'Whisper is an open speech recognition model by OpenAI.',
       'Pipeline: yt-dlp -> ffmpeg -> Whisper.',
@@ -271,20 +463,42 @@ class _YouTextAppState extends State<YouTextApp> {
       'You can edit, copy and file the text.',
     ];
 
-    final lines = <TranscriptLine>[];
-    var seconds = 0;
-    for (final sentence in template) {
-      final timestamp = _formatTimestamp(Duration(seconds: seconds));
-      lines.add(TranscriptLine(timestamp: timestamp, text: sentence));
-      seconds += 8 + random.nextInt(6);
+    final List<TranscriptLine> lines;
+    final String transcript;
+    if (includeTranscript) {
+      final generatedLines = <TranscriptLine>[];
+      final random = Random();
+      var seconds = 0;
+      for (final sentence in template) {
+        final timestamp = _formatTimestamp(Duration(seconds: seconds));
+        generatedLines.add(
+          TranscriptLine(timestamp: timestamp, text: sentence),
+        );
+        seconds += 8 + random.nextInt(6);
+      }
+      lines = generatedLines;
+      transcript = generatedLines
+          .map((line) => '[${line.timestamp}] ${line.text}')
+          .join('\n');
+    } else {
+      lines = const <TranscriptLine>[];
+      transcript = '';
     }
 
-    final transcript = lines
-        .map((line) => '[${line.timestamp}] ${line.text}')
-        .join('\n');
-
-    final summary =
-        'The video "$title" walks through an offline pipeline: download audio, convert to WAV and run Whisper without any external API.';
+    final String summary;
+    final List<String> highlights;
+    if (includeSummary) {
+      summary =
+          'Quick recap for "$title": audio was fetched locally, Whisper processed it offline and produced actionable notes.';
+      highlights = const <String>[
+        'Audio downloaded with yt-dlp and converted with ffmpeg.',
+        'Whisper handled speech-to-text fully on device.',
+        'Short videos give faster results in this proof-of-concept.',
+      ];
+    } else {
+      summary = '';
+      highlights = const <String>[];
+    }
 
     return TranscriptionRecord(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -294,6 +508,7 @@ class _YouTextAppState extends State<YouTextApp> {
       transcript: transcript,
       lines: lines,
       summary: summary,
+      highlights: highlights,
     );
   }
 
@@ -335,3 +550,5 @@ class _YouTextAppState extends State<YouTextApp> {
     return '$minutes:$seconds';
   }
 }
+
+

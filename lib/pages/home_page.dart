@@ -15,6 +15,10 @@ class HomePage extends StatelessWidget {
     required this.lastResult,
     required this.history,
     required this.isSignedIn,
+    required this.generateTranscript,
+    required this.generateSummary,
+    required this.onToggleGenerateTranscript,
+    required this.onToggleGenerateSummary,
     required this.onStartTranscription,
     required this.onOpenResult,
     required this.onCopyRecord,
@@ -28,6 +32,10 @@ class HomePage extends StatelessWidget {
   final TranscriptionRecord? lastResult;
   final List<TranscriptionRecord> history;
   final bool isSignedIn;
+  final bool generateTranscript;
+  final bool generateSummary;
+  final ValueChanged<bool> onToggleGenerateTranscript;
+  final ValueChanged<bool> onToggleGenerateSummary;
   final VoidCallback onStartTranscription;
   final void Function(TranscriptionRecord record) onOpenResult;
   final void Function(TranscriptionRecord record) onCopyRecord;
@@ -53,8 +61,9 @@ class HomePage extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(0xFF111827),
+            color: theme.colorScheme.surfaceVariant,
             borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -63,13 +72,51 @@ class HomePage extends StatelessWidget {
                 controller: urlController,
                 keyboardType: TextInputType.url,
                 style: theme.textTheme.bodyLarge,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Enter YouTube video URL',
                   prefixIcon: Icon(
                     Icons.search_rounded,
-                    color: Color(0xFF7C8AA6),
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Include in result',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  FilterChip(
+                    label: const Text('Transcript'),
+                    avatar: const Icon(Icons.article_outlined, size: 18),
+                    selected: generateTranscript,
+                    onSelected: onToggleGenerateTranscript,
+                    backgroundColor: theme.colorScheme.surface,
+                    selectedColor: theme.colorScheme.primary.withOpacity(0.2),
+                    checkmarkColor: theme.colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  FilterChip(
+                    label: const Text('Summary & highlights'),
+                    avatar: const Icon(Icons.bolt_outlined, size: 18),
+                    selected: generateSummary,
+                    onSelected: onToggleGenerateSummary,
+                    backgroundColor: theme.colorScheme.surface,
+                    selectedColor: theme.colorScheme.primary.withOpacity(0.2),
+                    checkmarkColor: theme.colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
               SizedBox(
@@ -184,13 +231,13 @@ class _GuestModeBanner extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Transcribe without signing in. Sign in with Google later to back up projects and sync them.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    height: 1.35,
+                  Text(
+                    'Transcribe without signing in. Create an account later to back up projects and sync them.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.35,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -272,13 +319,13 @@ class ProgressCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      subhead,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        height: 1.3,
+                      Text(
+                        subhead,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          height: 1.3,
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -412,17 +459,20 @@ class ResultCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF312E81), Color(0xFF1E1B4B)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        gradient: LinearGradient(
+                          colors: [
+                            theme.colorScheme.primary,
+                            theme.colorScheme.tertiary,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                       ),
-                    ),
                     alignment: Alignment.center,
                     child: Text(
                       'WH',
@@ -447,39 +497,39 @@ class ResultCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          previewLines.isNotEmpty
-                              ? previewLines.first.timestamp
-                              : '00:00',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface,
-                            letterSpacing: 0.2,
+                          Text(
+                            previewLines.isNotEmpty
+                                ? previewLines.first.timestamp
+                                : '00:00',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              letterSpacing: 0.2,
+                            ),
                           ),
-                        ),
                       ],
                     ),
-                  ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ],
-              ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
               if (previewLines.isNotEmpty) ...[
                 const SizedBox(height: 18),
                 for (final line in previewLines) ...[
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 56,
-                        child: Text(
-                          line.timestamp,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.onSurface,
+                        SizedBox(
+                          width: 56,
+                          child: Text(
+                            line.timestamp,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
-                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(

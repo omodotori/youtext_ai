@@ -38,7 +38,7 @@ class HistoryPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 72),
             decoration: BoxDecoration(
-              color: const Color(0xFF111827),
+              color: theme.colorScheme.surfaceVariant,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: theme.colorScheme.outlineVariant),
             ),
@@ -72,14 +72,14 @@ class HistoryPage extends StatelessWidget {
                   'Drop in a YouTube link from the Home tab to start building your library.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface,
+                    color: theme.colorScheme.onSurfaceVariant,
                     height: 1.4,
                   ),
                 ),
                 if (!isSignedIn) ...[
                   const SizedBox(height: 20),
                   Text(
-                    'Sign in with Google to keep transcripts backed up across sessions.',
+                    'Sign in to keep transcripts backed up across sessions.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -124,7 +124,7 @@ class HistoryPage extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(0xFF111827),
+            color: theme.colorScheme.surfaceVariant,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
@@ -160,7 +160,7 @@ class HistoryPage extends StatelessWidget {
                     Text(
                       '${history.length} saved ${history.length == 1 ? 'clip' : 'clips'} - swipe left to delete',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -213,26 +213,29 @@ class HistoryTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF111827),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: theme.colorScheme.outlineVariant),
-          ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceVariant,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
           child: Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3730A3), Color(0xFF1E1B4B)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.colorScheme.primary,
+                        theme.colorScheme.tertiary,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
-                ),
                 alignment: Alignment.center,
                 child: const Icon(
                   Icons.play_arrow_rounded,
@@ -256,16 +259,16 @@ class HistoryTile extends StatelessWidget {
                     Text(
                       formatDate(record.createdAt),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: theme.colorScheme.onSurface,
-              ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
             ],
           ),
         ),
@@ -307,7 +310,7 @@ class _HistoryHintBanner extends StatelessWidget {
                 Text(
                   'Right now everything stays on this device. Sign in when you’re ready to sync projects with your account.',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface,
+                    color: theme.colorScheme.onSurfaceVariant,
                     height: 1.35,
                   ),
                 ),

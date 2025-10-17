@@ -7,6 +7,7 @@ class TranscriptionRecord {
     required this.transcript,
     required this.lines,
     required this.summary,
+    required this.highlights,
   });
 
   final String id;
@@ -16,6 +17,7 @@ class TranscriptionRecord {
   final String transcript;
   final List<TranscriptLine> lines;
   final String summary;
+  final List<String> highlights;
 }
 
 class TranscriptLine {
