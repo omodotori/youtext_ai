@@ -61,7 +61,7 @@ class HomePage extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant,
+            color: theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
@@ -98,7 +98,7 @@ class HomePage extends StatelessWidget {
                     selected: generateTranscript,
                     onSelected: onToggleGenerateTranscript,
                     backgroundColor: theme.colorScheme.surface,
-                    selectedColor: theme.colorScheme.primary.withOpacity(0.2),
+                    selectedColor: theme.colorScheme.primary.withAlpha((0.2 * 255).round()),
                     checkmarkColor: theme.colorScheme.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -110,7 +110,7 @@ class HomePage extends StatelessWidget {
                     selected: generateSummary,
                     onSelected: onToggleGenerateSummary,
                     backgroundColor: theme.colorScheme.surface,
-                    selectedColor: theme.colorScheme.primary.withOpacity(0.2),
+                    selectedColor: theme.colorScheme.primary.withValues(alpha: 0.2),
                     checkmarkColor: theme.colorScheme.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),

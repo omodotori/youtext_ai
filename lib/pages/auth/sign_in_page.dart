@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({
@@ -8,7 +9,7 @@ class SignInPage extends StatefulWidget {
   });
 
   final Future<String?> Function(String email, String password) onSubmit;
-  final Future<bool> Function() onGoogleSignIn;
+  final Future<User?> Function() onGoogleSignIn;
 
   @override
   State<SignInPage> createState() => _SignInPageState();
@@ -32,16 +33,20 @@ class _SignInPageState extends State<SignInPage> {
   Future<void> _submit() async {
     if (_isSubmitting) return;
     if (!_formKey.currentState!.validate()) return;
+
     setState(() {
       _isSubmitting = true;
       _errorText = null;
     });
+
     final result = await widget.onSubmit(
       _emailController.text.trim(),
       _passwordController.text,
     );
+
     if (!mounted) return;
     setState(() => _isSubmitting = false);
+
     if (result == null) {
       Navigator.of(context).pop(true);
     } else {
@@ -55,39 +60,39 @@ class _SignInPageState extends State<SignInPage> {
       _isSubmitting = true;
       _errorText = null;
     });
-    final success = await widget.onGoogleSignIn();
+
+    final user = await widget.onGoogleSignIn(); // теперь возвращает User?
+
     if (!mounted) return;
     setState(() => _isSubmitting = false);
-    if (success) {
+
+    if (user != null) {
       Navigator.of(context).pop(true);
+    } else {
+      setState(() => _errorText = 'Ошибка при входе через Google.');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign in'),
-      ),
+      appBar: AppBar(title: const Text('Sign in')),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
           Text(
             'Access your transcripts',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Text(
             'Use the account you created to save history across sessions.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
-          if (_errorText != null) ...[
+          if (_errorText != null)
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -95,24 +100,19 @@ class _SignInPageState extends State<SignInPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.error_outline,
-                      color: theme.colorScheme.onErrorContainer),
+                  Icon(Icons.error_outline, color: theme.colorScheme.onErrorContainer),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       _errorText!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onErrorContainer,
-                      ),
+                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onErrorContainer),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-          ],
+          const SizedBox(height: 16),
           Form(
             key: _formKey,
             child: Column(
@@ -125,14 +125,9 @@ class _SignInPageState extends State<SignInPage> {
                     prefixIcon: Icon(Icons.mail_outline),
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Email is required.';
-                    }
-                    final email = value.trim();
+                    if (value == null || value.trim().isEmpty) return 'Email is required.';
                     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-                    if (!emailRegex.hasMatch(email)) {
-                      return 'Enter a valid email.';
-                    }
+                    if (!emailRegex.hasMatch(value.trim())) return 'Enter a valid email.';
                     return null;
                   },
                 ),
@@ -144,23 +139,14 @@ class _SignInPageState extends State<SignInPage> {
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      tooltip:
-                          _obscurePassword ? 'Show password' : 'Hide password',
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+                      icon: Icon(_obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Password is required.';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                      (value == null || value.isEmpty) ? 'Password is required.' : null,
                 ),
               ],
             ),
@@ -173,10 +159,7 @@ class _SignInPageState extends State<SignInPage> {
               onPressed: _isSubmitting ? null : _submit,
               child: _isSubmitting
                   ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
+                      width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Text('Sign in'),
             ),
           ),

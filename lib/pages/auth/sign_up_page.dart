@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({
@@ -7,12 +9,9 @@ class SignUpPage extends StatefulWidget {
     required this.onGoogleSignIn,
   });
 
-  final Future<String?> Function(
-    String displayName,
-    String email,
-    String password,
-  ) onSubmit;
-  final Future<bool> Function() onGoogleSignIn;
+  final Future<String?> Function(String displayName, String email, String password) onSubmit;
+  final Future<User?> Function() onGoogleSignIn;
+
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -42,17 +41,21 @@ class _SignUpPageState extends State<SignUpPage> {
   Future<void> _submit() async {
     if (_isSubmitting) return;
     if (!_formKey.currentState!.validate()) return;
+
     setState(() {
       _isSubmitting = true;
       _errorText = null;
     });
+
     final result = await widget.onSubmit(
       _nameController.text.trim(),
       _emailController.text.trim(),
       _passwordController.text,
     );
+
     if (!mounted) return;
     setState(() => _isSubmitting = false);
+
     if (result == null) {
       Navigator.of(context).pop(true);
     } else {
@@ -62,43 +65,40 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Future<void> _signInWithGoogle() async {
     if (_isSubmitting) return;
+
     setState(() {
       _isSubmitting = true;
       _errorText = null;
     });
-    final success = await widget.onGoogleSignIn();
+
+    final user = await widget.onGoogleSignIn();
+
     if (!mounted) return;
     setState(() => _isSubmitting = false);
-    if (success) {
-      Navigator.of(context).pop(true);
-    }
+
+    if (user != null) Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create account'),
-      ),
+      appBar: AppBar(title: const Text('Create account')),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
           Text(
             'Set up your YouText account',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Text(
             'Register to keep history, summaries and highlights backed up.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
-          if (_errorText != null) ...[
+          if (_errorText != null)
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -106,24 +106,19 @@ class _SignUpPageState extends State<SignUpPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.error_outline,
-                      color: theme.colorScheme.onErrorContainer),
+                  Icon(Icons.error_outline, color: theme.colorScheme.onErrorContainer),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       _errorText!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onErrorContainer,
-                      ),
+                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onErrorContainer),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-          ],
+          const SizedBox(height: 16),
           Form(
             key: _formKey,
             child: Column(
@@ -135,12 +130,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     prefixIcon: Icon(Icons.person_outline),
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Display name is required.';
-                    }
-                    if (value.trim().length < 3) {
-                      return 'Display name must be at least 3 characters.';
-                    }
+                    if (value == null || value.trim().isEmpty) return 'Display name is required.';
+                    if (value.trim().length < 3) return 'Display name must be at least 3 characters.';
                     return null;
                   },
                 ),
@@ -153,14 +144,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     prefixIcon: Icon(Icons.mail_outline),
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Email is required.';
-                    }
-                    final trimmed = value.trim();
+                    if (value == null || value.trim().isEmpty) return 'Email is required.';
                     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-                    if (!emailRegex.hasMatch(trimmed)) {
-                      return 'Enter a valid email.';
-                    }
+                    if (!emailRegex.hasMatch(value.trim())) return 'Enter a valid email.';
                     return null;
                   },
                 ),
@@ -172,24 +158,13 @@ class _SignUpPageState extends State<SignUpPage> {
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      tooltip:
-                          _obscurePassword ? 'Show password' : 'Hide password',
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+                      icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Password is required.';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters.';
-                    }
+                    if (value == null || value.isEmpty) return 'Password is required.';
+                    if (value.length < 6) return 'Password must be at least 6 characters.';
                     return null;
                   },
                 ),
@@ -201,24 +176,13 @@ class _SignUpPageState extends State<SignUpPage> {
                     labelText: 'Confirm password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      tooltip:
-                          _obscureConfirm ? 'Show password' : 'Hide password',
-                      icon: Icon(
-                        _obscureConfirm
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscureConfirm = !_obscureConfirm),
+                      icon: Icon(_obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                      onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Confirm your password.';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Passwords do not match.';
-                    }
+                    if (value == null || value.isEmpty) return 'Confirm your password.';
+                    if (value != _passwordController.text) return 'Passwords do not match.';
                     return null;
                   },
                 ),
@@ -227,23 +191,19 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
           const SizedBox(height: 24),
           SizedBox(
-            height: 48,
             width: double.infinity,
+            height: 48,
             child: FilledButton(
               onPressed: _isSubmitting ? null : _submit,
               child: _isSubmitting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Text('Create account'),
             ),
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 48,
             width: double.infinity,
+            height: 48,
             child: OutlinedButton.icon(
               onPressed: _isSubmitting ? null : _signInWithGoogle,
               icon: const Icon(Icons.login_rounded),

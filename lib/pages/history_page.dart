@@ -38,7 +38,7 @@ class HistoryPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 72),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant,
+              color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: theme.colorScheme.outlineVariant),
             ),
@@ -124,7 +124,7 @@ class HistoryPage extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant,
+            color: theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
@@ -216,7 +216,7 @@ class HistoryTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceVariant,
+          color: theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: theme.colorScheme.outlineVariant),
         ),

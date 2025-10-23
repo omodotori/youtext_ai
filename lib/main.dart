@@ -2,7 +2,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 
 import 'models/app_user.dart';
 import 'models/transcription_record.dart';
@@ -12,6 +15,23 @@ import 'pages/history_page.dart';
 import 'pages/home_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/result_screen.dart';
+import 'firebase_options.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase initialization failed: $e');
+  }
+  runApp(const YouTextApp());
+}
 
 final ColorScheme _appColorScheme = const ColorScheme.dark(
   primary: Color(0xFF2563EB),
@@ -24,24 +44,19 @@ final ColorScheme _appColorScheme = const ColorScheme.dark(
   onSecondaryContainer: Color(0xFFDBEAFE),
   tertiary: Color(0xFF1D4ED8),
   onTertiary: Color(0xFFFFFFFF),
-  background: Color(0xFF0B0B0F),
-  onBackground: Color(0xFFFFFFFF),
   surface: Color(0xFF18181B),
   onSurface: Color(0xFFFFFFFF),
-  surfaceVariant: Color(0xFF1C1C1E),
+  surfaceContainerHighest: Color(0xFF1C1C1E),
   onSurfaceVariant: Color(0xFF9CA3AF),
   outline: Color(0xFF2F3138),
   error: Color(0xFFF87171),
   onError: Color(0xFFFFFFFF),
 ).copyWith(
   surfaceTint: const Color(0xFF2563EB),
-  surfaceContainerHighest: const Color(0xFF1C1C1E),
   outlineVariant: const Color(0xFF2F3138),
 );
 
 const Color _scaffoldBackgroundColor = Color(0xFF0E0E10);
-
-void main() => runApp(const YouTextApp());
 
 class YouTextApp extends StatefulWidget {
   const YouTextApp({super.key});
@@ -61,7 +76,6 @@ class _YouTextAppState extends State<YouTextApp> {
   bool _isAuthenticating = false;
   AppUser? _currentUser;
   final List<AppUser> _registeredUsers = [];
-  final Map<String, String> _userPasswords = {};
   bool _includeTranscript = true;
   bool _includeSummary = true;
 
@@ -94,7 +108,7 @@ class _YouTextAppState extends State<YouTextApp> {
       ),
       cardColor: colorScheme.surface,
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: colorScheme.background,
+        backgroundColor: colorScheme.surface, // Исправлено: используем backgroundColor вместо surface
         selectedItemColor: colorScheme.primary,
         unselectedItemColor: colorScheme.onSurfaceVariant,
         type: BottomNavigationBarType.fixed,
@@ -114,7 +128,7 @@ class _YouTextAppState extends State<YouTextApp> {
         style: OutlinedButton.styleFrom(
           foregroundColor: colorScheme.onSurface,
           side: BorderSide(
-            color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -126,13 +140,13 @@ class _YouTextAppState extends State<YouTextApp> {
         foregroundColor: colorScheme.onPrimary,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: colorScheme.surfaceVariant,
+        backgroundColor: colorScheme.surfaceContainerHighest,
         contentTextStyle: textTheme.bodyMedium,
         behavior: SnackBarBehavior.floating,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceVariant,
+        fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: colorScheme.outline),
@@ -154,40 +168,44 @@ class _YouTextAppState extends State<YouTextApp> {
     );
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'YouText',
       theme: theme,
-      home: Scaffold(
-        body: SafeArea(
-          bottom: false,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: _buildBody(),
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: SafeArea(
+            bottom: false,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: _buildBody(),
+            ),
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            backgroundColor: theme.colorScheme.surface,
+            currentIndex: _tabIndex,
+            onTap: _setTab,
+            selectedItemColor: theme.colorScheme.primary,
+            unselectedItemColor: theme.colorScheme.onSurfaceVariant,
+            type: BottomNavigationBarType.fixed,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_rounded),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.history_rounded),
+                label: 'History',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_rounded),
+                label: 'Profile',
+              ),
+            ],
           ),
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: theme.colorScheme.background,
-          currentIndex: _tabIndex,
-          onTap: _setTab,
-          selectedItemColor: theme.colorScheme.primary,
-          unselectedItemColor: theme.colorScheme.onSurfaceVariant,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history_rounded),
-              label: 'History',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
-              label: 'Profile',
-            ),
-          ],
-        ),
       ),
+
     );
   }
 
@@ -291,24 +309,81 @@ class _YouTextAppState extends State<YouTextApp> {
   Future<void> _signInWithGoogle() async {
     if (_isAuthenticating || _currentUser != null) return;
     setState(() => _isAuthenticating = true);
-    await Future<void>.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final googleUser = AppUser(
-      id: 'google-$now',
-      email: 'demo-google-user-$now@example.com',
-      displayName: 'Demo Google User',
-    );
-    setState(() {
-      _isAuthenticating = false;
-      _currentUser = googleUser;
-      _registeredUsers.add(googleUser);
-    });
-    _showSnack('Signed in with Google (stub).');
+
+    try {
+      final auth = FirebaseAuth.instance;
+
+      if (kIsWeb) {
+        // --- ВЕБ ---
+        final googleProvider = GoogleAuthProvider();
+        final userCredential = await auth.signInWithPopup(googleProvider);
+        final firebaseUser = userCredential.user;
+
+        if (firebaseUser != null && mounted) {
+          final appUser = AppUser(
+            id: firebaseUser.uid,
+            email: firebaseUser.email ?? '',
+            displayName: firebaseUser.displayName ?? 'Google User',
+          );
+          setState(() {
+            _currentUser = appUser;
+            if (!_registeredUsers.any((u) => u.id == appUser.id)) {
+              _registeredUsers.add(appUser);
+            }
+          });
+          _showSnack('Signed in with Google (Web).');
+        }
+      } else {
+        // --- ANDROID / IOS ---
+        final googleUser = await GoogleSignIn().signIn();
+        if (googleUser == null) {
+          if (mounted) {
+            setState(() => _isAuthenticating = false);
+            _showSnack('Google Sign-In cancelled.');
+          }
+          return;
+        }
+
+        final googleAuth = await googleUser.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        final userCredential = await auth.signInWithCredential(credential);
+        final firebaseUser = userCredential.user;
+
+        if (firebaseUser != null && mounted) {
+          final appUser = AppUser(
+            id: firebaseUser.uid,
+            email: firebaseUser.email ?? '',
+            displayName: firebaseUser.displayName ?? 'Google User',
+          );
+          setState(() {
+            _currentUser = appUser;
+            if (!_registeredUsers.any((u) => u.id == appUser.id)) {
+              _registeredUsers.add(appUser);
+            }
+          });
+          _showSnack('Signed in with Google.');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnack('Google Sign-In failed: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isAuthenticating = false);
+      }
+    }
   }
+
 
   void _signOut() {
     if (_currentUser == null) return;
+    FirebaseAuth.instance.signOut();
+    GoogleSignIn().signOut();
     setState(() {
       _currentUser = null;
     });
@@ -316,41 +391,49 @@ class _YouTextAppState extends State<YouTextApp> {
   }
 
   Future<String?> _handleEmailSignIn(String email, String password) async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-    final key = email.trim().toLowerCase();
-    final storedPassword = _userPasswords[key];
-    if (storedPassword == null) {
-      return 'No account found for this email.';
-    }
-    if (storedPassword != password) {
-      return 'Incorrect password.';
-    }
-    AppUser? user;
-    for (final candidate in _registeredUsers) {
-      if (candidate.email.toLowerCase() == key) {
-        user = candidate;
-        break;
-      }
-    }
-    var added = false;
-    if (user == null) {
-      user = AppUser(
-        id: 'imported-$key',
+    if (_isAuthenticating || _currentUser != null) return null;
+    setState(() => _isAuthenticating = true);
+
+    try {
+      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email.trim(),
-        displayName: email.trim(),
+        password: password,
       );
-      added = true;
-    }
-    final resolvedUser = user;
-    if (resolvedUser == null) {
-      return 'Application is not ready.';
-    }
-    setState(() {
-      _currentUser = resolvedUser;
-      if (added) {
-        _registeredUsers.add(resolvedUser);
+      final firebaseUser = userCredential.user;
+
+      if (firebaseUser != null && mounted) {
+        final appUser = AppUser(
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          displayName: firebaseUser.displayName ?? email.trim(),
+        );
+        setState(() {
+          _currentUser = appUser;
+          if (!_registeredUsers.any((u) => u.id == appUser.id)) {
+            _registeredUsers.add(appUser);
+          }
+        });
+        return null;
       }
-    });
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        if (e.code == 'user-not-found') {
+          return 'No account found for this email.';
+        } else if (e.code == 'wrong-password') {
+          return 'Incorrect password.';
+        } else {
+          return 'Sign-in failed: ${e.message}';
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        return 'Sign-in failed: $e';
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isAuthenticating = false);
+      }
+    }
     return null;
   }
 
@@ -359,8 +442,51 @@ class _YouTextAppState extends State<YouTextApp> {
     String email,
     String password,
   ) async {
-    await Future<void>.delayed(const Duration(milliseconds: 400));
-    return 'Registration is not available in this demo build. Please sign in with an existing account or use Google.';
+    if (_isAuthenticating || _currentUser != null) return null;
+    setState(() => _isAuthenticating = true);
+
+    try {
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      final firebaseUser = userCredential.user;
+
+      if (firebaseUser != null && mounted) {
+        await firebaseUser.updateDisplayName(displayName.trim());
+        final appUser = AppUser(
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          displayName: displayName.trim(),
+        );
+        setState(() {
+          _currentUser = appUser;
+          if (!_registeredUsers.any((u) => u.id == appUser.id)) {
+            _registeredUsers.add(appUser);
+          }
+        });
+        return null;
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        if (e.code == 'email-already-in-use') {
+          return 'This email is already registered.';
+        } else if (e.code == 'weak-password') {
+          return 'Password is too weak.';
+        } else {
+          return 'Sign-up failed: ${e.message}';
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        return 'Sign-up failed: $e';
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isAuthenticating = false);
+      }
+    }
+    return null;
   }
 
   Future<void> _openEmailSignIn() async {
@@ -372,7 +498,7 @@ class _YouTextAppState extends State<YouTextApp> {
         ),
       ),
     );
-    if (result == true) {
+    if (result == true && mounted) {
       _showSnack('Welcome back!');
     }
   }
@@ -386,16 +512,23 @@ class _YouTextAppState extends State<YouTextApp> {
         ),
       ),
     );
-    if (result == true) {
+    if (result == true && mounted) {
       _showSnack('Account created.');
     }
   }
 
-  Future<bool> _handleGoogleSignInFromForm() async {
+  Future<User?> _handleGoogleSignInFromForm() async {
     final before = _currentUser;
     await _signInWithGoogle();
-    return _currentUser != before;
+
+    if (_currentUser != null && _currentUser != before) {
+      // Находим firebase user
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      return firebaseUser;
+    }
+    return null;
   }
+
 
   Future<void> _startTranscription() async {
     final url = _urlController.text.trim();
@@ -531,10 +664,16 @@ class _YouTextAppState extends State<YouTextApp> {
   }
 
   void _showSnack(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    final ctx = navigatorKey.currentContext;
+    if (ctx != null) {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } else {
+      debugPrint('⚠ Snackbar context is null');
+    }
   }
+
 
   String _extractTitleFromUrl(String url) {
     final uri = Uri.tryParse(url);
@@ -549,6 +688,4 @@ class _YouTextAppState extends State<YouTextApp> {
     final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$minutes:$seconds';
   }
-}
-
-
+}    

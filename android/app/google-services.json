@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "487147739789",
+    "project_id": "youtextai",
+    "storage_bucket": "youtextai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:487147739789:android:63c0f2733be4605d5da0c4",
+        "android_client_info": {
+          "package_name": "com.example.youtext_ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAqZG-OMkRzWDqexXY2f_RMYwYzW48Ud4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
