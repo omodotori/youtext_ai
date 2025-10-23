@@ -64,7 +64,7 @@ class ProfilePage extends StatelessWidget {
                 height: 88,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(32),
-                  gradient: user?.photoUrl == null // если авы нет, показываем градиент
+                  gradient: user?.photoUrl == null
                       ? LinearGradient(
                           colors: [
                             theme.colorScheme.primary,
