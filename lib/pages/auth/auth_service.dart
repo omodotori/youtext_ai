@@ -1,30 +1,37 @@
 import 'dart:developer' as dev;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../models/app_user.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   /// Вход через Google
-  Future<User?> signInWithGoogle() async {
+  Future<AppUser?> signInWithGoogle() async {
     try {
-      // 1. Запуск выбора Google аккаунта
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null; // пользователь отменил вход
+      if (googleUser == null) return null;
 
-      // 2. Получаем токены
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      // 3. Создаём Firebase credential
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // 4. Входим через Firebase
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
-      return userCredential.user;
+      final User? firebaseUser = userCredential.user;
+
+      if (firebaseUser == null) return null;
+
+      // Конвертация User в AppUser
+      return AppUser(
+        id: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        displayName: firebaseUser.displayName ?? 'Google User',
+        photoUrl: firebaseUser.photoURL,
+      );
     } catch (e, stackTrace) {
       dev.log(
         'Ошибка при входе через Google: $e',
@@ -35,6 +42,7 @@ class AuthService {
       return null;
     }
   }
+
 
   /// Выход из Firebase и Google
   Future<void> signOut() async {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../models/app_user.dart';
 
 
 class SignUpPage extends StatefulWidget {
@@ -10,7 +10,7 @@ class SignUpPage extends StatefulWidget {
   });
 
   final Future<String?> Function(String displayName, String email, String password) onSubmit;
-  final Future<User?> Function() onGoogleSignIn;
+  final Future<AppUser?> Function() onGoogleSignIn;
 
 
   @override

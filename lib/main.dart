@@ -324,6 +324,7 @@ class _YouTextAppState extends State<YouTextApp> {
             id: firebaseUser.uid,
             email: firebaseUser.email ?? '',
             displayName: firebaseUser.displayName ?? 'Google User',
+            photoUrl: firebaseUser.photoURL,
           );
           setState(() {
             _currentUser = appUser;
@@ -489,6 +490,15 @@ class _YouTextAppState extends State<YouTextApp> {
     return null;
   }
 
+  Future<AppUser?> _handleGoogleSignInFromForm() async {
+    final before = _currentUser;
+    await _signInWithGoogle();
+
+    if (_currentUser != null && _currentUser != before) {
+      return _currentUser;
+    }
+    return null;
+  }
   Future<void> _openEmailSignIn() async {
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -502,6 +512,7 @@ class _YouTextAppState extends State<YouTextApp> {
       _showSnack('Welcome back!');
     }
   }
+
 
   Future<void> _openEmailSignUp() async {
     final result = await Navigator.of(context).push<bool>(
@@ -517,17 +528,6 @@ class _YouTextAppState extends State<YouTextApp> {
     }
   }
 
-  Future<User?> _handleGoogleSignInFromForm() async {
-    final before = _currentUser;
-    await _signInWithGoogle();
-
-    if (_currentUser != null && _currentUser != before) {
-      // Находим firebase user
-      final firebaseUser = FirebaseAuth.instance.currentUser;
-      return firebaseUser;
-    }
-    return null;
-  }
 
 
   Future<void> _startTranscription() async {
@@ -688,4 +688,4 @@ class _YouTextAppState extends State<YouTextApp> {
     final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$minutes:$seconds';
   }
-}    
+}

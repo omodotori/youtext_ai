@@ -64,22 +64,29 @@ class ProfilePage extends StatelessWidget {
                 height: 88,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(32),
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.primary,
-                      theme.colorScheme.tertiary,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: user?.photoUrl == null // если авы нет, показываем градиент
+                      ? LinearGradient(
+                          colors: [
+                            theme.colorScheme.primary,
+                            theme.colorScheme.tertiary,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  initials,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: user?.photoUrl != null
+                    ? CircleAvatar(
+                        radius: 44,
+                        backgroundImage: NetworkImage(user!.photoUrl!),
+                      )
+                    : Text(
+                        initials,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
               ),
               const SizedBox(height: 18),
               Text(
