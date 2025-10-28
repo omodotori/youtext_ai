@@ -1,6 +1,9 @@
 ﻿import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n.dart';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -66,6 +69,14 @@ class YouTextApp extends StatefulWidget {
 }
 
 class _YouTextAppState extends State<YouTextApp> {
+  Locale _locale = const Locale('en');
+
+    void _changeLanguage(Locale locale) {
+      setState(() {
+        _locale = locale;
+      });
+    }
+
   final TextEditingController _urlController = TextEditingController();
   final List<TranscriptionRecord> _history = [];
   TranscriptionRecord? _lastResult;
@@ -108,7 +119,7 @@ class _YouTextAppState extends State<YouTextApp> {
       ),
       cardColor: colorScheme.surface,
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: colorScheme.surface, // Исправлено: используем backgroundColor вместо surface
+        backgroundColor: colorScheme.surface,
         selectedItemColor: colorScheme.primary,
         unselectedItemColor: colorScheme.onSurfaceVariant,
         type: BottomNavigationBarType.fixed,
@@ -172,6 +183,19 @@ class _YouTextAppState extends State<YouTextApp> {
       debugShowCheckedModeBanner: false,
       title: 'YouText',
       theme: theme,
+      //смена языка
+      locale: _locale,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ru'),
+      ],
+      localizationsDelegates: [
+        AppLocalizationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      //смена языка
       home: Builder(
         builder: (context) => Scaffold(
           body: SafeArea(
@@ -188,18 +212,18 @@ class _YouTextAppState extends State<YouTextApp> {
             selectedItemColor: theme.colorScheme.primary,
             unselectedItemColor: theme.colorScheme.onSurfaceVariant,
             type: BottomNavigationBarType.fixed,
-            items: const [
+            items: [
               BottomNavigationBarItem(
-                icon: Icon(Icons.home_rounded),
-                label: 'Home',
+                icon: const Icon(Icons.home_rounded),
+                label: AppLocalizations.of(context).t('home'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.history_rounded),
-                label: 'History',
+                icon: const Icon(Icons.history_rounded),
+                label: AppLocalizations.of(context).t('history'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.person_rounded),
-                label: 'Profile',
+                icon: const Icon(Icons.person_rounded),
+                label: AppLocalizations.of(context).t('profile'),
               ),
             ],
           ),
@@ -239,19 +263,40 @@ class _YouTextAppState extends State<YouTextApp> {
           onDeleteRecord: _deleteRecord,
         );
       case 2:
-        return ProfilePage(
-          tabIndex: _tabIndex,
-          onTabSelected: _setTab,
-          historyCount: _history.length,
-          isSignedIn: _currentUser != null,
-          isAuthenticating: _isAuthenticating,
-          user: _currentUser,
-          onEmailSignIn: _openEmailSignIn,
-          onEmailSignUp: _openEmailSignUp,
-          onGoogleSignIn: _signInWithGoogle,
-          onSignOut: _signOut,
-          onClearHistory: _clearHistory,
+        return Stack(
+          children: [
+            ProfilePage(
+              tabIndex: _tabIndex,
+              onTabSelected: _setTab,
+              historyCount: _history.length,
+              isSignedIn: _currentUser != null,
+              isAuthenticating: _isAuthenticating,
+              user: _currentUser,
+              onEmailSignIn: _openEmailSignIn,
+              onEmailSignUp: _openEmailSignUp,
+              onGoogleSignIn: _signInWithGoogle,
+              onSignOut: _signOut,
+              onClearHistory: _clearHistory,
+            ),
+            Positioned(
+              right: 20,
+              bottom: 20,
+              child: FloatingActionButton(
+                onPressed: () {
+                  if (_locale.languageCode == 'en') {
+                    _changeLanguage(const Locale('ru'));
+                    _showSnack('Язык: Русский');
+                  } else {
+                    _changeLanguage(const Locale('en'));
+                    _showSnack('Language: English');
+                  }
+                },
+                child: const Icon(Icons.language),
+              ),
+            ),
+          ],
         );
+
       default:
         return const SizedBox.shrink();
     }

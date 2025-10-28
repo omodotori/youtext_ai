@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../models/transcription_record.dart';
-import '../widgets/page_header.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({
@@ -30,11 +29,6 @@ class HistoryPage extends StatelessWidget {
         key: const ValueKey('history-empty'),
         padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
         children: [
-          PageHeader(
-            title: 'History',
-            tabIndex: tabIndex,
-            onTabSelected: onTabSelected,
-          ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 72),
             decoration: BoxDecoration(
@@ -112,11 +106,11 @@ class HistoryPage extends StatelessWidget {
       key: const ValueKey('history'),
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
       children: [
-        PageHeader(
-          title: 'History',
-          tabIndex: tabIndex,
-          onTabSelected: onTabSelected,
-        ),
+        // PageHeader(
+        //   title: 'History',
+        //   tabIndex: tabIndex,
+        //   onTabSelected: onTabSelected,
+        // ),
         if (!isSignedIn) ...[
           const _HistoryHintBanner(),
           const SizedBox(height: 16),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/app_user.dart';
-import '../widgets/page_header.dart';
 import 'edit_profile_page.dart';
 
 
@@ -45,11 +44,6 @@ class ProfilePage extends StatelessWidget {
       key: const ValueKey('profile'),
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
       children: [
-        PageHeader(
-          title: 'Profile',
-          tabIndex: tabIndex,
-          onTabSelected: onTabSelected,
-        ),
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(

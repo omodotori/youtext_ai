@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../models/transcription_record.dart';
-import '../widgets/page_header.dart';
 import 'history_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -49,11 +48,6 @@ class HomePage extends StatelessWidget {
       key: const ValueKey('home'),
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
       children: [
-        PageHeader(
-          title: 'Home',
-          tabIndex: tabIndex,
-          onTabSelected: onTabSelected,
-        ),
         if (!isSignedIn) ...[
           const _GuestModeBanner(),
           const SizedBox(height: 20),
