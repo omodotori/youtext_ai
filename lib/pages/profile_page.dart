@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/app_user.dart';
+
 import '../l10n.dart';
 import 'edit_profile_page.dart';
+import '../pages/auth/sign_in_page.dart';
+import '../pages/auth/sign_up_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({
@@ -156,39 +159,77 @@ class ProfilePage extends StatelessWidget {
   Widget _signInOptions(BuildContext context, AppLocalizations loc) {
     return Column(
       children: [
+        // Email Sign-In → открывает SignInPage
         SizedBox(
           width: double.infinity,
           height: 48,
           child: FilledButton.icon(
-            onPressed: isAuthenticating ? null : onGoogleSignIn,
-            icon: isAuthenticating
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.g_mobiledata),
-            label: Text(
-                isAuthenticating ? loc.t('connecting') : loc.t('continue_google')),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: OutlinedButton.icon(
-            onPressed: isAuthenticating ? null : onEmailSignIn,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SignInPage(
+                    onSubmit: (email, password) async {
+                      await onEmailSignIn();
+                      return null;
+                    },
+                    onGoogleSignIn: () async {
+                      await onGoogleSignIn();
+                      return null;
+                    },
+                  ),
+                ),
+              );
+            },
             icon: const Icon(Icons.mail_outline),
             label: Text(loc.t('sign_in_email')),
           ),
         ),
-        TextButton(
-          onPressed: isAuthenticating ? null : onEmailSignUp,
-          child: Text(loc.t('create_account')),
+        const SizedBox(height: 12),
+
+        // Sign-Up  открывает SignUpPage
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SignUpPage(
+                    onSubmit: (displayName, email, password) async {
+                      await onEmailSignUp();
+                      return null;
+                    },
+                    onGoogleSignIn: () async {
+                      await onGoogleSignIn();
+                      return null;
+                    },
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.person_add),
+            label: Text(loc.t('create_account')),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Google Sign-In
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: FilledButton.icon(
+            onPressed: onGoogleSignIn,
+            icon: const Icon(Icons.g_mobiledata),
+            label: Text(loc.t('continue_google')),
+          ),
         ),
       ],
     );
   }
+
+
 
   Widget _historyAndAbout(ThemeData theme, AppLocalizations loc) {
     return Container(
