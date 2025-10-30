@@ -281,22 +281,22 @@ class _YouTextAppState extends State<YouTextApp> {
               onLanguageChanged: _changeLanguage,
               
             ),
-            Positioned(
-              right: 20,
-              bottom: 20,
-              child: FloatingActionButton(
-                onPressed: () {
-                  if (_locale.languageCode == 'en') {
-                    _changeLanguage(const Locale('ru'));
-                    _showSnack('Язык: Русский');
-                  } else {
-                    _changeLanguage(const Locale('en'));
-                    _showSnack('Language: English');
-                  }
-                },
-                child: const Icon(Icons.language),
-              ),
-            ),
+            // Positioned(
+            //   right: 20,
+            //   bottom: 20,
+            //   child: FloatingActionButton(
+            //     onPressed: () {
+            //       if (_locale.languageCode == 'en') {
+            //         _changeLanguage(const Locale('ru'));
+            //         _showSnack('Язык: Русский');
+            //       } else {
+            //         _changeLanguage(const Locale('en'));
+            //         _showSnack('Language: English');
+            //       }
+            //     },
+            //     child: const Icon(Icons.language),
+            //   ),
+            // ),
           ],
         );
 
