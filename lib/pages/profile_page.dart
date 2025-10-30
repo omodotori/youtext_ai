@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/app_user.dart';
+import '../l10n.dart';
 import 'edit_profile_page.dart';
-
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({
@@ -17,6 +17,7 @@ class ProfilePage extends StatelessWidget {
     required this.onGoogleSignIn,
     required this.onSignOut,
     required this.onClearHistory,
+    required this.onLanguageChanged,
   });
 
   final int tabIndex;
@@ -30,15 +31,18 @@ class ProfilePage extends StatelessWidget {
   final Future<void> Function() onGoogleSignIn;
   final VoidCallback onSignOut;
   final VoidCallback onClearHistory;
+  final void Function(Locale) onLanguageChanged;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
     final displayName = user?.displayName.trim().isNotEmpty == true
         ? user!.displayName
-        : 'YouText user';
+        : loc.t('youtext_user');
     final email = user?.email;
-    final initials = (displayName.isNotEmpty ? displayName[0] : 'Y').toUpperCase();
+    final initials =
+        (displayName.isNotEmpty ? displayName[0] : 'Y').toUpperCase();
 
     return ListView(
       key: const ValueKey('profile'),
@@ -84,7 +88,7 @@ class ProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Text(
-                isSignedIn ? displayName : 'Guest profile',
+                isSignedIn ? displayName : loc.t('guest_profile'),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -102,19 +106,21 @@ class ProfilePage extends StatelessWidget {
                 const SizedBox(height: 8),
               ],
               if (isSignedIn)
-                _signedInButtons(context)
+                _signedInButtons(context, loc)
               else
-                _signInOptions(context),
+                _signInOptions(context, loc),
             ],
           ),
         ),
         const SizedBox(height: 24),
-        _historyAndAbout(theme),
+        _historyAndAbout(theme, loc),
+        const SizedBox(height: 24),
+        _languageSelector(theme, loc),
       ],
     );
   }
 
-  Widget _signedInButtons(BuildContext context) {
+  Widget _signedInButtons(BuildContext context, AppLocalizations loc) {
     return Column(
       children: [
         SizedBox(
@@ -130,7 +136,7 @@ class ProfilePage extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.edit),
-            label: const Text('Edit Profile'),
+            label: Text(loc.t('edit_profile')),
           ),
         ),
         const SizedBox(height: 12),
@@ -140,14 +146,14 @@ class ProfilePage extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: onSignOut,
             icon: const Icon(Icons.logout_rounded),
-            label: const Text('Sign out'),
+            label: Text(loc.t('sign_out')),
           ),
         ),
       ],
     );
   }
 
-  Widget _signInOptions(BuildContext context) {
+  Widget _signInOptions(BuildContext context, AppLocalizations loc) {
     return Column(
       children: [
         SizedBox(
@@ -162,7 +168,8 @@ class ProfilePage extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.g_mobiledata),
-            label: Text(isAuthenticating ? 'Connecting...' : 'Continue with Google'),
+            label: Text(
+                isAuthenticating ? loc.t('connecting') : loc.t('continue_google')),
           ),
         ),
         const SizedBox(height: 12),
@@ -172,18 +179,18 @@ class ProfilePage extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: isAuthenticating ? null : onEmailSignIn,
             icon: const Icon(Icons.mail_outline),
-            label: const Text('Sign in with email'),
+            label: Text(loc.t('sign_in_email')),
           ),
         ),
         TextButton(
           onPressed: isAuthenticating ? null : onEmailSignUp,
-          child: const Text('Create a new account'),
+          child: Text(loc.t('create_account')),
         ),
       ],
     );
   }
 
-  Widget _historyAndAbout(ThemeData theme) {
+  Widget _historyAndAbout(ThemeData theme, AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -196,25 +203,29 @@ class ProfilePage extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.library_books_outlined, color: theme.colorScheme.primary),
+              Icon(Icons.library_books_outlined,
+                  color: theme.colorScheme.primary),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Saved transcripts',
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                    Text(loc.t('saved_transcripts'),
+                        style: theme.textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
                     Text(
-                      'History is stored locally until you sign in.',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      loc.t('history_info'),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
               Text(historyCount.toString(),
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 24),
@@ -224,8 +235,48 @@ class ProfilePage extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: historyCount == 0 ? null : onClearHistory,
               icon: const Icon(Icons.delete_outline),
-              label: const Text('Clear history'),
+              label: Text(loc.t('clear_history')),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _languageSelector(ThemeData theme, AppLocalizations loc) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc.t('language'),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => onLanguageChanged(const Locale('en')),
+                  child: const Text('English'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => onLanguageChanged(const Locale('ru')),
+                  child: const Text('Русский'),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -1,13 +1,10 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/app_user.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-
-
-
+import '../l10n.dart';
 
 class EditProfilePage extends StatefulWidget {
   final AppUser? user;
@@ -27,7 +24,8 @@ class EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    _displayNameController = TextEditingController(text: widget.user?.displayName ?? '');
+    _displayNameController =
+        TextEditingController(text: widget.user?.displayName ?? '');
     _emailController = TextEditingController(text: widget.user?.email ?? '');
   }
 
@@ -40,7 +38,8 @@ class EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final picked =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (picked != null) {
       setState(() {
         _pickedImage = File(picked.path);
@@ -49,16 +48,15 @@ class EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _saveProfile() async {
+    final loc = AppLocalizations.of(context);
     if (!_formKey.currentState!.validate()) return;
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
     try {
-      // 1. Обновляем displayName
       await user.updateDisplayName(_displayNameController.text.trim());
 
-      // 2. Обновляем email только для email/password пользователей
       if (user.providerData.any((p) => p.providerId == 'password')) {
         if (_emailController.text.trim() != user.email) {
           await user.verifyBeforeUpdateEmail(_emailController.text.trim());
@@ -66,13 +64,12 @@ class EditProfilePageState extends State<EditProfilePage> {
       } else if (_emailController.text.trim() != user.email) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Email is managed by your social login provider'),
+          SnackBar(
+            content: Text(loc.t('email_managed_social')),
           ),
         );
       }
 
-      // 3. Загружаем аватарку, если выбрали
       if (_pickedImage != null) {
         final ref = FirebaseStorage.instance.ref('avatars/${user.uid}.jpg');
         await ref.putFile(_pickedImage!);
@@ -80,32 +77,31 @@ class EditProfilePageState extends State<EditProfilePage> {
         await user.updatePhotoURL(url);
       }
 
-      // 4. Перезагружаем данные пользователя
       await user.reload();
       final updatedUser = FirebaseAuth.instance.currentUser;
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
+        SnackBar(content: Text(loc.t('profile_updated'))),
       );
       Navigator.pop(context, updatedUser);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating profile: $e')),
+        SnackBar(content: Text('${loc.t('profile_update_error')}: $e')),
       );
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text(loc.t('edit_profile')),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -125,9 +121,11 @@ class EditProfilePageState extends State<EditProfilePage> {
                       backgroundImage: _pickedImage != null
                           ? FileImage(_pickedImage!)
                           : (widget.user?.photoUrl != null
-                              ? NetworkImage(widget.user!.photoUrl!) as ImageProvider
+                              ? NetworkImage(widget.user!.photoUrl!)
+                                  as ImageProvider
                               : null),
-                      child: widget.user?.photoUrl == null && _pickedImage == null
+                      child: widget.user?.photoUrl == null &&
+                              _pickedImage == null
                           ? Text(
                               widget.user?.displayName.isNotEmpty == true
                                   ? widget.user!.displayName[0].toUpperCase()
@@ -147,7 +145,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                         child: CircleAvatar(
                           radius: 16,
                           backgroundColor: theme.colorScheme.primary,
-                          child: const Icon(Icons.edit, size: 18, color: Colors.white),
+                          child: const Icon(Icons.edit,
+                              size: 18, color: Colors.white),
                         ),
                       ),
                     ),
@@ -158,11 +157,14 @@ class EditProfilePageState extends State<EditProfilePage> {
               TextFormField(
                 controller: _displayNameController,
                 decoration: InputDecoration(
-                  labelText: 'Display Name',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelText: loc.t('display_name'),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) return 'Please enter a display name';
+                  if (value == null || value.trim().isEmpty) {
+                    return loc.t('enter_display_name');
+                  }
                   return null;
                 },
               ),
@@ -170,13 +172,18 @@ class EditProfilePageState extends State<EditProfilePage> {
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelText: loc.t('email'),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) return 'Please enter an email';
+                  if (value == null || value.trim().isEmpty) {
+                    return loc.t('enter_email');
+                  }
                   final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-                  if (!emailRegex.hasMatch(value.trim())) return 'Enter a valid email';
+                  if (!emailRegex.hasMatch(value.trim())) {
+                    return loc.t('invalid_email');
+                  }
                   return null;
                 },
               ),
@@ -186,7 +193,7 @@ class EditProfilePageState extends State<EditProfilePage> {
                 height: 48,
                 child: FilledButton(
                   onPressed: _saveProfile,
-                  child: const Text('Save Changes'),
+                  child: Text(loc.t('save_changes')),
                 ),
               ),
             ],

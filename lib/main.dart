@@ -9,6 +9,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'firebase_options.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'models/app_user.dart';
 import 'models/transcription_record.dart';
@@ -18,8 +20,7 @@ import 'pages/history_page.dart';
 import 'pages/home_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/result_screen.dart';
-import 'firebase_options.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+
 
 
 
@@ -277,6 +278,8 @@ class _YouTextAppState extends State<YouTextApp> {
               onGoogleSignIn: _signInWithGoogle,
               onSignOut: _signOut,
               onClearHistory: _clearHistory,
+              onLanguageChanged: _changeLanguage,
+              
             ),
             Positioned(
               right: 20,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import '../models/transcription_record.dart';
+import '../l10n.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen({super.key, required this.record});
@@ -35,9 +35,7 @@ class _ResultScreenState extends State<ResultScreen> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.record.id != widget.record.id) {
       _editController.text = widget.record.transcript;
-      setState(() {
-        _view = _initialView();
-      });
+      setState(() => _view = _initialView());
     }
   }
 
@@ -66,44 +64,46 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _copyCurrent() {
+    final l10n = AppLocalizations.of(context);
     switch (_view) {
       case _ContentView.transcript:
         if (!_hasTranscript) {
-          _showSnack('Transcript is not available for this run.');
+          _showSnack(l10n.t('no_transcript_available'));
           return;
         }
         Clipboard.setData(ClipboardData(text: _editController.text));
-        _showSnack('Transcript copied to clipboard.');
+        _showSnack(l10n.t('transcript_copied'));
         break;
       case _ContentView.outline:
         if (!_hasOutline) {
-          _showSnack('Highlights are not available for this run.');
+          _showSnack(l10n.t('no_highlights_available'));
           return;
         }
         final bulletList =
             widget.record.highlights.map((item) => '- $item').join('\n');
         Clipboard.setData(ClipboardData(text: bulletList));
-        _showSnack('Highlights copied to clipboard.');
+        _showSnack(l10n.t('highlights_copied'));
         break;
       case _ContentView.summary:
         if (!_hasSummary) {
-          _showSnack('Summary is not available for this run.');
+          _showSnack(l10n.t('no_summary_available'));
           return;
         }
         Clipboard.setData(ClipboardData(text: widget.record.summary));
-        _showSnack('Summary copied to clipboard.');
+        _showSnack(l10n.t('summary_copied'));
         break;
     }
   }
 
   void _copyLine(TranscriptLine line) {
     Clipboard.setData(ClipboardData(text: '[${line.timestamp}] ${line.text}'));
-    _showSnack('Line copied to clipboard.');
+    _showSnack(AppLocalizations.of(context).t('line_copied'));
   }
 
   void _openEditor() {
+    final l10n = AppLocalizations.of(context);
     if (!_hasTranscript) {
-      _showSnack('Transcript is not available for this run.');
+      _showSnack(l10n.t('no_transcript_available'));
       return;
     }
     showModalBottomSheet<void>(
@@ -122,15 +122,16 @@ class _ResultScreenState extends State<ResultScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Quick edit transcript',
+                l10n.t('quick_edit_transcript'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _editController,
                 maxLines: 12,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  hintText: l10n.t('edit_here'),
                 ),
               ),
               const SizedBox(height: 12),
@@ -138,7 +139,7 @@ class _ResultScreenState extends State<ResultScreen> {
                 alignment: Alignment.centerRight,
                 child: FilledButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Done'),
+                  child: Text(l10n.t('done')),
                 ),
               ),
             ],
@@ -149,14 +150,14 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _showSnack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       appBar: AppBar(title: Text(widget.record.videoTitle)),
       floatingActionButton: Column(
@@ -167,7 +168,7 @@ class _ResultScreenState extends State<ResultScreen> {
             heroTag: 'copy',
             onPressed: _canCopy ? _copyCurrent : null,
             icon: const Icon(Icons.copy_all_rounded),
-            label: Text(_copyButtonLabel()),
+            label: Text(_copyButtonLabel(l10n)),
           ),
           if (_view == _ContentView.transcript && _hasTranscript) ...[
             const SizedBox(height: 12),
@@ -182,7 +183,7 @@ class _ResultScreenState extends State<ResultScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          Text('Source video', style: theme.textTheme.titleMedium),
+          Text(l10n.t('source_video'), style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           SelectableText(
             widget.record.videoUrl,
@@ -201,178 +202,34 @@ class _ResultScreenState extends State<ResultScreen> {
           const SizedBox(height: 20),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
-            child: _buildContent(theme),
+            child: _buildContent(theme, l10n),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContent(ThemeData theme) {
+  Widget _buildContent(ThemeData theme, AppLocalizations l10n) {
     switch (_view) {
       case _ContentView.transcript:
-        return _buildTranscriptView(theme);
+        return _buildUnavailableState(theme,
+            key: const ValueKey('transcript-empty'),
+            icon: Icons.article_outlined,
+            title: l10n.t('no_transcript'),
+            message: l10n.t('enable_transcript_message'));
       case _ContentView.outline:
-        return _buildOutlineView(theme);
+        return _buildUnavailableState(theme,
+            key: const ValueKey('outline-empty'),
+            icon: Icons.list_alt_rounded,
+            title: l10n.t('no_outline'),
+            message: l10n.t('enable_summary_message'));
       case _ContentView.summary:
-        return _buildSummaryView(theme);
+        return _buildUnavailableState(theme,
+            key: const ValueKey('summary-empty'),
+            icon: Icons.bolt_outlined,
+            title: l10n.t('no_summary'),
+            message: l10n.t('enable_summary_message'));
     }
-  }
-
-  Widget _buildTranscriptView(ThemeData theme) {
-    if (!_hasTranscript) {
-      return _buildUnavailableState(
-        theme,
-        key: const ValueKey('transcript-empty'),
-        icon: Icons.article_outlined,
-        title: 'Transcript not generated',
-        message:
-            'Enable transcript generation on the Home tab and run the transcription again.',
-      );
-    }
-
-    final lines = widget.record.lines;
-    if (lines.isEmpty) {
-      if (_editController.text.trim().isEmpty) {
-        return _buildUnavailableState(
-          theme,
-          key: const ValueKey('transcript-missing'),
-          icon: Icons.hourglass_empty_rounded,
-          title: 'No transcript lines',
-          message: 'No text was captured for this run.',
-        );
-      }
-      return Container(
-        key: const ValueKey('transcript-single'),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.colorScheme.outlineVariant),
-        ),
-        child: SelectableText(
-          _editController.text,
-          style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
-        ),
-      );
-    }
-
-    return Column(
-      key: const ValueKey('transcript'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final line in lines) ...[
-          InkWell(
-            onTap: () => _copyLine(line),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: theme.colorScheme.surface,
-                border: Border.all(color: theme.colorScheme.outlineVariant),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 60,
-                    child: Text(
-                      line.timestamp,
-                      style: const TextStyle(fontFamily: 'monospace'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SelectableText(
-                      line.text,
-                      style: const TextStyle(height: 1.4),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.copy_rounded, size: 18),
-                    tooltip: 'Copy line',
-                    onPressed: () => _copyLine(line),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildOutlineView(ThemeData theme) {
-    if (!_hasOutline) {
-      return _buildUnavailableState(
-        theme,
-        key: const ValueKey('outline-empty'),
-        icon: Icons.list_alt_rounded,
-        title: 'Highlights not generated',
-        message:
-            'Enable summary generation on the Home tab to see key bullet points.',
-      );
-    }
-
-    return Column(
-      key: const ValueKey('outline'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final note in widget.record.highlights) ...[
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: theme.colorScheme.surface,
-              border: Border.all(color: theme.colorScheme.outlineVariant),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('- ', style: TextStyle(fontSize: 18)),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: SelectableText(
-                    note,
-                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.35),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSummaryView(ThemeData theme) {
-    if (!_hasSummary) {
-      return _buildUnavailableState(
-        theme,
-        key: const ValueKey('summary-empty'),
-        icon: Icons.bolt_outlined,
-        title: 'Summary not generated',
-        message:
-            'Turn on summary generation to get a short recap of each transcription.',
-      );
-    }
-
-    return Container(
-      key: const ValueKey('summary'),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: SelectableText(
-        widget.record.summary,
-        style: theme.textTheme.bodyMedium?.copyWith(height: 1.45),
-      ),
-    );
   }
 
   Widget _buildUnavailableState(
@@ -395,12 +252,9 @@ class _ResultScreenState extends State<ResultScreen> {
         children: [
           Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 26),
           const SizedBox(height: 12),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Text(title,
+              style:
+                  theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Text(
             message,
@@ -414,14 +268,14 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  String _copyButtonLabel() {
+  String _copyButtonLabel(AppLocalizations l10n) {
     switch (_view) {
       case _ContentView.transcript:
-        return 'Copy transcript';
+        return l10n.t('copy_transcript');
       case _ContentView.outline:
-        return 'Copy highlights';
+        return l10n.t('copy_highlights');
       case _ContentView.summary:
-        return 'Copy summary';
+        return l10n.t('copy_summary');
     }
   }
 }
@@ -443,6 +297,7 @@ class _ContentSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Wrap(
       spacing: 12,
       runSpacing: 8,
@@ -454,7 +309,7 @@ class _ContentSelector extends StatelessWidget {
         };
         final selected = current == view;
         return ChoiceChip(
-          label: Text(_label(view)),
+          label: Text(_label(view, l10n)),
           avatar: Icon(_icon(view), size: 18),
           selected: selected,
           onSelected: enabled ? (_) => onChanged(view) : null,
@@ -463,14 +318,14 @@ class _ContentSelector extends StatelessWidget {
     );
   }
 
-  String _label(_ContentView view) {
+  String _label(_ContentView view, AppLocalizations l10n) {
     switch (view) {
       case _ContentView.transcript:
-        return 'Transcript';
+        return l10n.t('transcript');
       case _ContentView.outline:
-        return 'Highlights';
+        return l10n.t('highlights');
       case _ContentView.summary:
-        return 'Summary';
+        return l10n.t('summary');
     }
   }
 

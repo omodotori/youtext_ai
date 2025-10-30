@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../models/transcription_record.dart';
+import '../l10n.dart'; 
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({
@@ -23,6 +23,7 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     if (history.isEmpty) {
       return ListView(
@@ -55,7 +56,7 @@ class HistoryPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 28),
                 Text(
-                  'No transcriptions yet',
+                  l10n.noTranscriptionsYet,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -63,7 +64,7 @@ class HistoryPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Drop in a YouTube link from the Home tab to start building your library.',
+                  l10n.dropLinkToStart,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
@@ -73,7 +74,7 @@ class HistoryPage extends StatelessWidget {
                 if (!isSignedIn) ...[
                   const SizedBox(height: 20),
                   Text(
-                    'Sign in to keep transcripts backed up across sessions.',
+                    l10n.signInToBackup,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -92,7 +93,7 @@ class HistoryPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: const Text('Go to Home'),
+                    child: Text(l10n.goToHome),
                   ),
                 ),
               ],
@@ -106,11 +107,6 @@ class HistoryPage extends StatelessWidget {
       key: const ValueKey('history'),
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
       children: [
-        // PageHeader(
-        //   title: 'History',
-        //   tabIndex: tabIndex,
-        //   onTabSelected: onTabSelected,
-        // ),
         if (!isSignedIn) ...[
           const _HistoryHintBanner(),
           const SizedBox(height: 16),
@@ -145,14 +141,14 @@ class HistoryPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Your transcript library',
+                      l10n.transcriptLibrary,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${history.length} saved ${history.length == 1 ? 'clip' : 'clips'} - swipe left to delete',
+                      '${history.length} ${history.length == 1 ? l10n.clip : l10n.clips} — ${l10n.swipeToDelete}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -207,29 +203,29 @@ class HistoryTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: theme.colorScheme.outlineVariant),
-        ),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+          ),
           child: Row(
             children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.primary,
-                        theme.colorScheme.tertiary,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary,
+                      theme.colorScheme.tertiary,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                ),
                 alignment: Alignment.center,
                 child: const Icon(
                   Icons.play_arrow_rounded,
@@ -259,10 +255,10 @@ class HistoryTile extends StatelessWidget {
                   ],
                 ),
               ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ],
           ),
         ),
@@ -277,6 +273,7 @@ class _HistoryHintBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -295,14 +292,14 @@ class _HistoryHintBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Keep your transcripts',
+                  l10n.keepYourTranscripts,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Right now everything stays on this device. Sign in when you’re ready to sync projects with your account.',
+                  l10n.keepYourTranscriptsDesc,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     height: 1.35,
@@ -319,18 +316,8 @@ class _HistoryHintBanner extends StatelessWidget {
 
 String formatDate(DateTime date) {
   const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
   ];
   final now = DateTime.now();
   final monthLabel = months[date.month - 1];
