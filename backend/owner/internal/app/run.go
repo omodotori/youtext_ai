@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"net/http"
 	"owner/internal/adapter/ai"
@@ -14,6 +13,8 @@ import (
 	"owner/internal/config"
 	"owner/internal/lib/logger"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func Run() {
@@ -38,7 +39,7 @@ func Run() {
 
 	slog.Info("Server launched!")
 
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8000", mux); err != nil {
 		panic(err)
 	}
 }

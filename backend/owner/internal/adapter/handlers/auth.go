@@ -55,6 +55,30 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	utils.ResponseInJson(w, 200, result)
 }
 
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	if http.MethodPost != r.Method {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	id, ok := r.Context().Value(UserIDKey).(int64)
+	if !ok {
+		http.Error(w, "user id not found in context", http.StatusUnauthorized)
+		return
+	}
+
+	err := h.service.Logout(int(id))
+	if err != nil {
+		h.logger.Error("error:", err)
+
+		utils.ErrResponseInJson(w, err)
+	}
+
+	utils.ResponseInJson(w, 200, map[string]string{
+		"message": "success",
+	})
+}
+
 func (h *Handler) NewAccessToken(w http.ResponseWriter, r *http.Request) {
 	if http.MethodPost != r.Method {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)

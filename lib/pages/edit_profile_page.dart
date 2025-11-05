@@ -5,11 +5,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/app_user.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../l10n.dart';
+import '../services/profile_service.dart';
 
 class EditProfilePage extends StatefulWidget {
   final AppUser? user;
 
-  const EditProfilePage({super.key, this.user});
+  final void Function(AppUser? updatedUser)? onUserUpdated;
+
+  const EditProfilePage({super.key, this.user, this.onUserUpdated});
+
+  // const EditProfilePage({super.key, this.user});
 
   @override
   EditProfilePageState createState() => EditProfilePageState();
@@ -52,40 +57,42 @@ class EditProfilePageState extends State<EditProfilePage> {
     if (!_formKey.currentState!.validate()) return;
 
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
 
     try {
-      await user.updateDisplayName(_displayNameController.text.trim());
+      // обновляем имя локально
+      if (user != null) {
+        await user.updateDisplayName(_displayNameController.text.trim());
 
-      if (user.providerData.any((p) => p.providerId == 'password')) {
-        if (_emailController.text.trim() != user.email) {
-          await user.verifyBeforeUpdateEmail(_emailController.text.trim());
+        if (_pickedImage != null) {
+          final ref = FirebaseStorage.instance.ref('avatars/${user.uid}.jpg');
+          await ref.putFile(_pickedImage!);
+          final url = await ref.getDownloadURL();
+          await user.updatePhotoURL(url);
         }
-      } else if (_emailController.text.trim() != user.email) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(loc.t('email_managed_social')),
-          ),
-        );
+
+        await user.reload();
       }
 
-      if (_pickedImage != null) {
-        final ref = FirebaseStorage.instance.ref('avatars/${user.uid}.jpg');
-        await ref.putFile(_pickedImage!);
-        final url = await ref.getDownloadURL();
-        await user.updatePhotoURL(url);
-      }
-
-      await user.reload();
-      final updatedUser = FirebaseAuth.instance.currentUser;
+      // теперь обновляем на сервере
+      final updatedUser = await ProfileService().updataUser(
+        _emailController.text.trim(),
+        _displayNameController.text.trim(),
+      );
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.t('profile_updated'))),
-      );
-      Navigator.pop(context, updatedUser);
+      if (updatedUser != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loc.t('profile_updated'))),
+        );
+        widget.onUserUpdated?.call(updatedUser);
+        Navigator.pop(context);
+
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${loc.t('profile_update_error')} (сервер)')),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

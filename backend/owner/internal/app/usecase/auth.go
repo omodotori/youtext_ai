@@ -3,6 +3,7 @@ package usecase
 import (
 	"owner/internal/domain/models"
 	"owner/internal/lib/utils"
+	"strconv"
 )
 
 func (s *Service) Login(data models.User) (*models.Tokens, error) {
@@ -20,4 +21,10 @@ func (s *Service) Register(data models.User) (*models.RegisterResp, error) {
 
 func (s *Service) NewAccessToken(data models.Tokens) (*models.Tokens, error) {
 	return s.AuthClient.NewAccessToken(&data)
+}
+
+func (s *Service) Logout(id int) error {
+	newID := strconv.Itoa(id)
+
+	return s.AuthClient.Logout(newID)
 }

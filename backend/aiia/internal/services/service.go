@@ -96,13 +96,25 @@ func (s *Service) generateSummary(transcript, typ string) (string, error) {
 	prompt := fmt.Sprintf(`
 Ты — ассистент, который делает структурированный JSON с таймкодами из расшифровки видео.
 
-Формат ответа (верни строго JSON, без текста, пояснений и комментариев!):
+⚠️ Правила:
+- Верни строго корректный JSON.
+- video_title должен быть написан исходя от темы, обязательно!
+- Не добавляй никакого текста, комментариев или пояснений вне JSON.
+- Все поля должны быть заполнены: ничего не должно быть null или пустым ("").
+- Если чего-то нет в расшифровке — придумай реалистичное значение.
+- Даты формируй в формате ISO8601, например "2025-11-05T00:00:00Z".
+- Поле "timecodes" должно содержать не менее 3 элементов.
+
+Формат:
 {
-  "text": "Краткое описание",
-  "link": "https://youtu.be/milk-cat",
+  "video_title": "тай",
+  "link": "string",
+  "text": "string (summary)",
+  "transcript": "string (full text or short version)",
+  "highlights": ["string", "string"],
   "timecodes": [
-    {"timecode": "00:00", "descriptions": "Кот уснул"},
-    {"timecode": "00:12", "descriptions": "Кот проснулся"}
+    {"timecode": "00:00", "descriptions": "string"},
+    {"timecode": "02:00", "descriptions": "string"}
   ]
 }
 
@@ -115,8 +127,11 @@ func (s *Service) generateSummary(transcript, typ string) (string, error) {
 		Model: openai.GPT4oMini,
 		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    openai.ChatMessageRoleSystem,
-				Content: "Ты должен возвращать только корректный JSON, без лишнего текста.",
+				Role: openai.ChatMessageRoleSystem,
+				Content: `
+Ты — точный JSON-генератор. 
+Возвращай только валидный JSON без пустых или null полей. 
+Если данных нет — выдумай логичные значения.`,
 			},
 			{
 				Role:    openai.ChatMessageRoleUser,
@@ -124,7 +139,7 @@ func (s *Service) generateSummary(transcript, typ string) (string, error) {
 			},
 		},
 		MaxTokens:   2000,
-		Temperature: 0.3,
+		Temperature: 0.4,
 	}
 
 	resp, err := s.openai.CreateChatCompletion(ctx, req)

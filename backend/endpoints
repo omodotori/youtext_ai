@@ -2,9 +2,12 @@ aiia
 POST http://localhost:3000/api/generate Генерация текста
 
 demo(history)
-POST http://localhost3001/api/history 		Сохранить историю
-GET http://localhost3001/api/history  		Посмотреть истории
-GET http://localhost3001/api/history/{user_id}  Посмотреть истории по id
+POST http://localhost:3001/api/history 		Сохранить историю
+GET http://localhost:3001/api/history  		Посмотреть истории
+GET http://localhost:3001/api/history/{user_id}  Посмотреть истории по id
+DELETE http://localhost:3001/api/history/user/{user_id} Удаляет по id
+GET http://localhost:3001/api/history/user/{user_id}/count кол-во истории
+
 
 profile
 GET http://localhost:3002/api/profile/{user_id}         Получить фото по user_id

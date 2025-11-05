@@ -1,5 +1,7 @@
 package com.example.profile.services;
 
+import com.example.profile.dto.UserDto;
+import com.example.profile.dto.UserUpdateDto;
 import com.example.profile.models.User;
 import com.example.profile.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,5 +58,21 @@ public class UserService {
     public String getAvatarContentType(String avatarUrl) throws Exception {
         return s3Service.getFileContentType(avatarUrl);
     }
+
+    public User updateProfile(Long userId, UserUpdateDto userDto) {
+        User user = repository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        if (userDto.getNickname() != null && !userDto.getNickname().isEmpty()) {
+            user.setNickname(userDto.getNickname());
+        }
+
+        if (userDto.getEmail() != null && !userDto.getEmail().isEmpty()) {
+            user.setEmail(userDto.getEmail());
+        }
+
+        return repository.save(user);
+    }
+
 
 }

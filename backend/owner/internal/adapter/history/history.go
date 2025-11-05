@@ -83,3 +83,65 @@ func (h *history) GetHistoryByID(id string) (*[]models.Summary, error) {
 
 	return &result, nil
 }
+
+func (h *history) GetHistoryCountByID(id string) (int, error) {
+	locInstance := "api/history/{user_id}"
+
+	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
+
+	s := fmt.Sprintf("http://localhost:3001/api/history/user/%s/count", id)
+
+	req, err := http.NewRequest(http.MethodGet, s, nil)
+	if err != nil {
+		return 0, fmt.Errorf("ошибка генерации запроса: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	h.logger.Info("%s отправка запроса: %s", instance, locInstance)
+	resp, err := h.client.Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("ошибка запроса: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return 0, fmt.Errorf("сервер вернул статус %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Count int `json:"count"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, fmt.Errorf("ошибка декодирования JSON: %w", err)
+	}
+
+	return result.Count, nil
+}
+
+func (h *history) DeleteHistory(id string) error {
+	locInstance := "api/history/{user_id}"
+
+	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
+
+	req, err := http.NewRequest(http.MethodDelete, "http://localhost:3001/api/history/user/"+id, nil)
+	if err != nil {
+		return fmt.Errorf("ошибка генерации запроса: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	h.logger.Info("%s отправка запроса: %s", instance, locInstance)
+	resp, err := h.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("ошибка запроса: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("сервер вернул статус %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}

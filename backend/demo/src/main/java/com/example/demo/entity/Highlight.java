@@ -4,18 +4,15 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "timecodes")
-public class Timecode {
+@Table(name = "highlights")
+public class Highlight {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 50)
-    private String timecode;
-
-    @Column(columnDefinition = "TEXT")
-    private String descriptions;
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String highlight;
 
     @ManyToOne
     @JoinColumn(name = "history_id", nullable = false)
@@ -26,11 +23,8 @@ public class Timecode {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getTimecode() { return timecode; }
-    public void setTimecode(String timecode) { this.timecode = timecode; }
-
-    public String getDescriptions() { return descriptions; }
-    public void setDescriptions(String descriptions) { this.descriptions = descriptions; }
+    public String getHighlight() { return highlight; }
+    public void setHighlight(String highlight) { this.highlight = highlight; }
 
     public History getHistory() { return history; }
     public void setHistory(History history) { this.history = history; }

@@ -1,18 +1,20 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/app_user.dart';
-
+import '../services/auth_service.dart';
+import '../services/profile_service.dart';
+import '../services/history_service.dart';
 import '../l10n.dart';
 import 'edit_profile_page.dart';
 import '../pages/auth/sign_in_page.dart';
 import '../pages/auth/sign_up_page.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({
     super.key,
     required this.tabIndex,
     required this.onTabSelected,
     required this.historyCount,
-    required this.isSignedIn,
     required this.isAuthenticating,
     required this.user,
     required this.onEmailSignIn,
@@ -21,12 +23,12 @@ class ProfilePage extends StatelessWidget {
     required this.onSignOut,
     required this.onClearHistory,
     required this.onLanguageChanged,
+    required this.onUserUpdated,
   });
 
   final int tabIndex;
   final ValueChanged<int> onTabSelected;
   final int historyCount;
-  final bool isSignedIn;
   final bool isAuthenticating;
   final AppUser? user;
   final Future<void> Function() onEmailSignIn;
@@ -35,17 +37,75 @@ class ProfilePage extends StatelessWidget {
   final VoidCallback onSignOut;
   final VoidCallback onClearHistory;
   final void Function(Locale) onLanguageChanged;
+  final void Function(AppUser? updatedUser) onUserUpdated;
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  late HistoryService _historyService;
+  late AuthService _authService;
+  late ProfileService _profileService;
+  AppUser? _user;
+
+  int _historyCount = 0;
+  bool _isLoadingHistory = false;
+
+
+  bool get isSignedIn => _user != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _historyService = HistoryService();
+    _authService = AuthService();
+    _profileService = ProfileService();
+    _user = widget.user;
+
+    if (_user != null) {
+      _fetchHistoryCount();
+    }
+
+  }
+
+  Future<void> _fetchHistoryCount() async {
+    setState(() => _isLoadingHistory = true);
+    try {
+      final count = await _historyService.getHistoryCount();
+      setState(() => _historyCount = count);
+    } catch (e) {
+      print('Ошибка загрузки количества истории: $e');
+    } finally {
+      setState(() => _isLoadingHistory = false);
+    }
+  }
+
+  Future<void> _clearHistory() async {
+    final success = await _historyService.clearHistory();
+    if (success) {
+      setState(() => _historyCount = 0);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('История успешно очищена')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Не удалось очистить историю')),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final loc = AppLocalizations.of(context);
-    final displayName = user?.displayName.trim().isNotEmpty == true
-        ? user!.displayName
+
+    final displayName = _user?.displayName.trim().isNotEmpty == true
+        ? _user!.displayName
         : loc.t('youtext_user');
-    final email = user?.email;
-    final initials =
-        (displayName.isNotEmpty ? displayName[0] : 'Y').toUpperCase();
+    final email = _user?.email;
+    final initials = (displayName.isNotEmpty ? displayName[0] : 'Y').toUpperCase();
 
     return ListView(
       key: const ValueKey('profile'),
@@ -65,7 +125,7 @@ class ProfilePage extends StatelessWidget {
                 height: 88,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(32),
-                  gradient: user?.photoUrl == null
+                  gradient: _user?.photoBytes == null
                       ? LinearGradient(
                           colors: [
                             theme.colorScheme.primary,
@@ -77,10 +137,10 @@ class ProfilePage extends StatelessWidget {
                       : null,
                 ),
                 alignment: Alignment.center,
-                child: user?.photoUrl != null
+                child: _user?.photoBytes != null
                     ? CircleAvatar(
                         radius: 44,
-                        backgroundImage: NetworkImage(user!.photoUrl!),
+                        backgroundImage: MemoryImage(_user!.photoBytes!),
                       )
                     : Text(
                         initials,
@@ -134,7 +194,12 @@ class ProfilePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => EditProfilePage(user: user),
+                  builder: (context) => EditProfilePage(
+                  user: _user,
+                  onUserUpdated: (updatedUser) {
+                    widget.onUserUpdated(updatedUser);
+                  },
+                ),
                 ),
               );
             },
@@ -147,7 +212,22 @@ class ProfilePage extends StatelessWidget {
           width: double.infinity,
           height: 48,
           child: OutlinedButton.icon(
-            onPressed: onSignOut,
+            onPressed: () async {
+              final result = await _authService.logout();
+              if (result == null) {
+                widget.onSignOut();
+                widget.onUserUpdated(null);
+                setState(() => _user = null);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Вы успешно вышли')),
+                );
+              } else {
+                // произошла ошибка
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Ошибка при выходе: $result')),
+                );
+              }
+            },
             icon: const Icon(Icons.logout_rounded),
             label: Text(loc.t('sign_out')),
           ),
@@ -159,7 +239,6 @@ class ProfilePage extends StatelessWidget {
   Widget _signInOptions(BuildContext context, AppLocalizations loc) {
     return Column(
       children: [
-        // Email Sign-In → открывает SignInPage
         SizedBox(
           width: double.infinity,
           height: 48,
@@ -170,11 +249,22 @@ class ProfilePage extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (_) => SignInPage(
                     onSubmit: (email, password) async {
-                      await onEmailSignIn();
-                      return null;
+                      final user = await _authService.signIn(email, password);
+                      if (user != null) {
+                        widget.onUserUpdated(user);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Вход выполнен успешно')),
+                        );
+                        setState(() {
+                          _user = user;
+                        });
+                        return null;
+                      } else {
+                        return 'Ошибка входа';
+                      }
                     },
                     onGoogleSignIn: () async {
-                      await onGoogleSignIn();
+                      await widget.onGoogleSignIn();
                       return null;
                     },
                   ),
@@ -186,8 +276,6 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-
-        // Sign-Up  открывает SignUpPage
         SizedBox(
           width: double.infinity,
           height: 48,
@@ -198,11 +286,22 @@ class ProfilePage extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (_) => SignUpPage(
                     onSubmit: (displayName, email, password) async {
-                      await onEmailSignUp();
-                      return null;
+                      final user = await _authService.signUp(displayName, email, password);
+                      if (user != null) {
+                        widget.onUserUpdated(user);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Регистрация успешна')),
+                        );
+                        setState(() {
+                          _user = user;
+                        });
+                        return null;
+                      } else {
+                        return 'Ошибка регистрации';
+                      }
                     },
                     onGoogleSignIn: () async {
-                      await onGoogleSignIn();
+                      await widget.onGoogleSignIn();
                       return null;
                     },
                   ),
@@ -214,13 +313,11 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-
-        // Google Sign-In
         SizedBox(
           width: double.infinity,
           height: 48,
           child: FilledButton.icon(
-            onPressed: onGoogleSignIn,
+            onPressed: widget.onGoogleSignIn,
             icon: const Icon(Icons.g_mobiledata),
             label: Text(loc.t('continue_google')),
           ),
@@ -229,9 +326,22 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-
-
   Widget _historyAndAbout(ThemeData theme, AppLocalizations loc) {
+    if (!isSignedIn) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
+        child: Text(
+          loc.t('sign_in_to_view_history'),
+          style: theme.textTheme.bodyMedium,
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -244,29 +354,35 @@ class ProfilePage extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.library_books_outlined,
-                  color: theme.colorScheme.primary),
+              Icon(Icons.library_books_outlined, color: theme.colorScheme.primary),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(loc.t('saved_transcripts'),
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600)),
+                    Text(
+                      loc.t('saved_transcripts'),
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       loc.t('history_info'),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
+                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
-              Text(historyCount.toString(),
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700)),
+              _isLoadingHistory
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(
+                      _historyCount.toString(),
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    ),
             ],
           ),
           const SizedBox(height: 24),
@@ -274,7 +390,7 @@ class ProfilePage extends StatelessWidget {
             width: double.infinity,
             height: 48,
             child: OutlinedButton.icon(
-              onPressed: historyCount == 0 ? null : onClearHistory,
+              onPressed: _historyCount == 0 ? null : _clearHistory,
               icon: const Icon(Icons.delete_outline),
               label: Text(loc.t('clear_history')),
             ),
@@ -283,6 +399,7 @@ class ProfilePage extends StatelessWidget {
       ),
     );
   }
+
 
   Widget _languageSelector(ThemeData theme, AppLocalizations loc) {
     return Container(
@@ -297,23 +414,21 @@ class ProfilePage extends StatelessWidget {
         children: [
           Text(
             loc.t('language'),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => onLanguageChanged(const Locale('en')),
+                  onPressed: () => widget.onLanguageChanged(const Locale('en')),
                   child: const Text('English'),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => onLanguageChanged(const Locale('ru')),
+                  onPressed: () => widget.onLanguageChanged(const Locale('ru')),
                   child: const Text('Русский'),
                 ),
               ),

@@ -212,23 +212,55 @@ class _ResultScreenState extends State<ResultScreen> {
   Widget _buildContent(ThemeData theme, AppLocalizations l10n) {
     switch (_view) {
       case _ContentView.transcript:
-        return _buildUnavailableState(theme,
-            key: const ValueKey('transcript-empty'),
-            icon: Icons.article_outlined,
-            title: l10n.t('no_transcript'),
-            message: l10n.t('enable_transcript_message'));
+        if (!_hasTranscript) {
+          return _buildUnavailableState(theme,
+              key: const ValueKey('transcript-empty'),
+              icon: Icons.article_outlined,
+              title: l10n.t('no_transcript'),
+              message: l10n.t('enable_transcript_message'));
+        }
+        return Column(
+          key: const ValueKey('transcript-content'),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: widget.record.lines.map((line) {
+            return ListTile(
+              title: Text(line.text),
+              subtitle: Text(line.timestamp),
+              onTap: () => _copyLine(line),
+            );
+          }).toList(),
+        );
+
       case _ContentView.outline:
-        return _buildUnavailableState(theme,
-            key: const ValueKey('outline-empty'),
-            icon: Icons.list_alt_rounded,
-            title: l10n.t('no_outline'),
-            message: l10n.t('enable_summary_message'));
+        if (!_hasOutline) {
+          return _buildUnavailableState(theme,
+              key: const ValueKey('outline-empty'),
+              icon: Icons.list_alt_rounded,
+              title: l10n.t('no_outline'),
+              message: l10n.t('enable_summary_message'));
+        }
+        return Column(
+          key: const ValueKey('outline-content'),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: widget.record.highlights.map((item) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Text("- $item"),
+          )).toList(),
+        );
+
       case _ContentView.summary:
-        return _buildUnavailableState(theme,
-            key: const ValueKey('summary-empty'),
-            icon: Icons.bolt_outlined,
-            title: l10n.t('no_summary'),
-            message: l10n.t('enable_summary_message'));
+        if (!_hasSummary) {
+          return _buildUnavailableState(theme,
+              key: const ValueKey('summary-empty'),
+              icon: Icons.bolt_outlined,
+              title: l10n.t('no_summary'),
+              message: l10n.t('enable_summary_message'));
+        }
+        return Padding(
+          key: const ValueKey('summary-content'),
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Text(widget.record.summary),
+        );
     }
   }
 

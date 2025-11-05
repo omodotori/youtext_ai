@@ -112,6 +112,36 @@ func (h *authClient) Login(data models.User) (*models.Tokens, error) {
 	return &result, nil
 }
 
+func (h *authClient) Logout(id string) error {
+	locInstance := "api/auth/login"
+
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	h.logger.Info("%s Генерация нового запроса: %s", instance, locInstance)
+	req, err := http.NewRequest(http.MethodPost, "http://localhost:3003/api/auth/logout/"+id, nil)
+	if err != nil {
+		return fmt.Errorf("ошибка создания запроса: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	h.logger.Info("%s отправка запроса: %s", instance, locInstance)
+	resp, err := h.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("ошибка запроса: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		b, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("сервер вернул статус %d: %s", resp.StatusCode, string(b))
+	}
+
+	return nil
+}
+
 func (h *authClient) NewAccessToken(refreshToken *models.Tokens) (*models.Tokens, error) {
 	locInstance := "api/auth/refresh"
 

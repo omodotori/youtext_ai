@@ -17,12 +17,24 @@ CREATE TABLE IF NOT EXISTS refresh_token (
 CREATE TABLE IF NOT EXISTS history (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
+    video_title VARCHAR(255) NOT NULL,
+    link TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
     text TEXT,
-    timecode VARCHAR(50),
-    link VARCHAR(255),
-    CONSTRAINT fk_history_user
+    transcript TEXT,
+    CONSTRAINT fk_summary_user
         FOREIGN KEY (user_id)
         REFERENCES "user" (id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS highlights (
+    id SERIAL PRIMARY KEY,
+    history_id INT NOT NULL,
+    highlight TEXT NOT NULL,
+    CONSTRAINT fk_highlights_history
+        FOREIGN KEY (history_id)
+        REFERENCES history (id)
         ON DELETE CASCADE
 );
 

@@ -5,6 +5,7 @@ import com.example.demo.repository.HistoryRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/history")
@@ -27,7 +28,23 @@ public class HistoryController {
     }
 
     @GetMapping("/{user_id}")
-    public List<History> getByUserId(@PathVariable("user_id") Long userId) {
+    public List<History> getByUserId(@PathVariable("user_id") Integer userId) {
         return historyRepository.findByUserId(userId);
+    }
+
+    @DeleteMapping("/user/{user_id}")
+    public void deleteAllByUserId(@PathVariable("user_id") Integer userId) {
+        historyRepository.deleteByUserId(userId);
+    }
+
+    @GetMapping("/user/{user_id}/count")
+    public Map<String, Long> getHistoryCount(@PathVariable("user_id") Integer userId) {
+        long count = historyRepository.countByUserId(userId);
+        return Map.of("count", count);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteById(@PathVariable("id") Long id) {
+        historyRepository.deleteById(id);
     }
 }

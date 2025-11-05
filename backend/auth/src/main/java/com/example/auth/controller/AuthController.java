@@ -41,14 +41,10 @@ public class AuthController {
         return ResponseEntity.ok(resp);
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).body("No token");
-        }
-        String token = authHeader.substring(7);
-        Long userId = jwtUtil.extractUserId(token);
+    @PostMapping("/logout/{user_id}")
+    public ResponseEntity<?> logout(@PathVariable("user_id") Long userId, @RequestHeader(value = "Authorization", required = false) String authHeader) {
         authService.logout(userId);
         return ResponseEntity.ok(Map.of("status", "logged_out"));
     }
+
 }

@@ -6,4 +6,5 @@ type ProfileClient interface {
 	GetByID(id string) (*models.User, error)
 	UpdateAvatar(id string) (*models.User, error)
 	GetUserPhoto(userID int) ([]byte, string, error)
+	UpdateDataUser(id string, data models.User) error
 }

@@ -20,3 +20,9 @@ func (s *Service) UpdateAvatar(id int) (*models.User, error) {
 func (s *Service) GetUserPhoto(userID int) ([]byte, string, error) {
 	return s.ProfileClient.GetUserPhoto(userID)
 }
+
+func (s *Service) UpdateUserData(id int, data models.User) error {
+	newID := strconv.Itoa(id)
+
+	return s.ProfileClient.UpdateDataUser(newID, data)
+}

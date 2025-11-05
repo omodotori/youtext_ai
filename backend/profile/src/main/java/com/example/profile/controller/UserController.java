@@ -1,6 +1,7 @@
 package com.example.profile.controller;
 
 import com.example.profile.dto.UserDto;
+import com.example.profile.dto.UserUpdateDto;
 import com.example.profile.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,13 @@ public class UserController {
                 .ok()
                 .header("Content-Type", contentType)
                 .body(imageBytes);
+    }
+
+    @PutMapping("update/{user_id}")
+    public ResponseEntity<Void> updateProfile(@PathVariable("user_id") Long userId, @RequestBody UserUpdateDto userDto) {
+
+        service.updateProfile(userId, userDto);
+        return ResponseEntity.ok().build();
     }
 
 }

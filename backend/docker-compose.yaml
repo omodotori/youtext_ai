@@ -41,7 +41,7 @@ services:
       - postgres
       - minio
     ports:
-      - "3000:${AIIA_PORT}"
+      - "3004:${AIIA_PORT}"
     networks:
       - backend-net
 

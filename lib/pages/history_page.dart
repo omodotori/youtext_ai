@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/transcription_record.dart';
-import '../l10n.dart'; 
+import '../l10n.dart';
+import '../services/history_service.dart';
 
-class HistoryPage extends StatelessWidget {
+class HistoryPage extends StatefulWidget {
   const HistoryPage({
     super.key,
     required this.tabIndex,
     required this.onTabSelected,
-    required this.history,
     required this.isSignedIn,
     required this.onOpenRecord,
     required this.onDeleteRecord,
@@ -15,17 +15,43 @@ class HistoryPage extends StatelessWidget {
 
   final int tabIndex;
   final ValueChanged<int> onTabSelected;
-  final List<TranscriptionRecord> history;
   final bool isSignedIn;
   final void Function(TranscriptionRecord record) onOpenRecord;
   final void Function(TranscriptionRecord record) onDeleteRecord;
 
   @override
+  State<HistoryPage> createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  final HistoryService _historyService = HistoryService();
+  List<TranscriptionRecord> _history = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    final history = await _historyService.getHistory();
+    setState(() {
+      _history = history;
+      _isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    if (history.isEmpty) {
+    if (_history.isEmpty) {
       return ListView(
         key: const ValueKey('history-empty'),
         padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
@@ -71,7 +97,7 @@ class HistoryPage extends StatelessWidget {
                     height: 1.4,
                   ),
                 ),
-                if (!isSignedIn) ...[
+                if (!widget.isSignedIn) ...[
                   const SizedBox(height: 20),
                   Text(
                     l10n.signInToBackup,
@@ -87,7 +113,7 @@ class HistoryPage extends StatelessWidget {
                   height: 48,
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: () => onTabSelected(0),
+                    onPressed: () => widget.onTabSelected(0),
                     style: FilledButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -107,7 +133,7 @@ class HistoryPage extends StatelessWidget {
       key: const ValueKey('history'),
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
       children: [
-        if (!isSignedIn) ...[
+        if (!widget.isSignedIn) ...[
           const _HistoryHintBanner(),
           const SizedBox(height: 16),
         ],
@@ -148,7 +174,7 @@ class HistoryPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${history.length} ${history.length == 1 ? l10n.clip : l10n.clips} — ${l10n.swipeToDelete}',
+                      '${_history.length} ${_history.length == 1 ? l10n.clip : l10n.clips} — ${l10n.swipeToDelete}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -160,11 +186,11 @@ class HistoryPage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        for (final record in history) ...[
+        for (final record in _history) ...[
           Dismissible(
             key: ValueKey(record.id),
             direction: DismissDirection.endToStart,
-            onDismissed: (_) => onDeleteRecord(record),
+            onDismissed: (_) => widget.onDeleteRecord(record),
             background: Container(
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -179,10 +205,10 @@ class HistoryPage extends StatelessWidget {
             ),
             child: HistoryTile(
               record: record,
-              onTap: () => onOpenRecord(record),
+              onTap: () => widget.onOpenRecord(record),
             ),
           ),
-          if (record != history.last) const SizedBox(height: 16),
+          if (record != _history.last) const SizedBox(height: 16),
         ],
       ],
     );
@@ -198,6 +224,10 @@ class HistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final localDate = record.createdAt.toLocal();
+    final formattedDate = formatDate(localDate);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -246,8 +276,19 @@ class HistoryTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
+                    if (record.summary != null && record.summary!.isNotEmpty) ...[
+                      Text(
+                        record.summary!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                    ],
                     Text(
-                      formatDate(record.createdAt),
+                      formattedDate,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

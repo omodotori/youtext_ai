@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -122,4 +123,38 @@ func (p *profileClient) GetUserPhoto(userID int) ([]byte, string, error) {
 	}
 
 	return data, contentType, nil
+}
+
+func (p *profileClient) UpdateDataUser(id string, data models.User) error {
+	locInstance := "api/profile/{user_id}/update"
+
+	pathUrl := fmt.Sprintf("http://localhost:3002/api/profile/update/%s", id)
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("ошибка сериализации JSON: %w", err)
+	}
+
+	p.logger.Info("%s генерация запроса: %s", instance, locInstance)
+	req, err := http.NewRequest(http.MethodPut, pathUrl, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("ошибка генерации запроса: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	p.logger.Info("%s отправка запроса: %s", instance, locInstance)
+	resp, err := p.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("ошибка запроса: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("сервер вернул статус %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
 }
