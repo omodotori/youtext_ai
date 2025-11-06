@@ -5,6 +5,7 @@ import '../l10n.dart';
 import 'edit_profile_page.dart';
 import '../pages/auth/sign_in_page.dart';
 import '../pages/auth/sign_up_page.dart';
+import 'package:streamlit/pages/admin_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({
@@ -44,8 +45,8 @@ class ProfilePage extends StatelessWidget {
         ? user!.displayName
         : loc.t('youtext_user');
     final email = user?.email;
-    final initials =
-        (displayName.isNotEmpty ? displayName[0] : 'Y').toUpperCase();
+    final initials = (displayName.isNotEmpty ? displayName[0] : 'Y')
+        .toUpperCase();
 
     return ListView(
       key: const ValueKey('profile'),
@@ -143,6 +144,25 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
+        const SizedBox(height: 12),
+        // Админ-кнопка (показать только для администратора)
+        if (user?.email == 'admin@gmail.com')
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminPage()),
+                );
+              },
+              icon: const Icon(Icons.admin_panel_settings_rounded),
+              label: const Text('Админ-панель'),
+            ),
+          ),
+
+        const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
           height: 48,
@@ -229,8 +249,6 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-
-
   Widget _historyAndAbout(ThemeData theme, AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -244,29 +262,38 @@ class ProfilePage extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.library_books_outlined,
-                  color: theme.colorScheme.primary),
+              Icon(
+                Icons.library_books_outlined,
+                color: theme.colorScheme.primary,
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(loc.t('saved_transcripts'),
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600)),
+                    Text(
+                      loc.t('saved_transcripts'),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       loc.t('history_info'),
                       style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
-              Text(historyCount.toString(),
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700)),
+              Text(
+                historyCount.toString(),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
