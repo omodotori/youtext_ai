@@ -12,6 +12,7 @@ import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'firebase_options.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import './services/video_service.dart';
 import 'models/app_user.dart';
 import 'models/transcription_record.dart';
 import 'pages/auth/sign_in_page.dart';
@@ -92,6 +93,8 @@ class _YouTextAppState extends State<YouTextApp> {
   final List<AppUser> _registeredUsers = [];
   bool _includeTranscript = true;
   bool _includeSummary = true;
+
+  final _videoService = VideoService();
 
   @override
   void dispose() {
@@ -260,7 +263,7 @@ class _YouTextAppState extends State<YouTextApp> {
         return HistoryPage(
           tabIndex: _tabIndex,
           onTabSelected: _setTab,
-          history: _history,
+          // history: _history,
           isSignedIn: _currentUser != null,
           onOpenRecord: _openResult,
           onDeleteRecord: _deleteRecord,
@@ -272,7 +275,6 @@ class _YouTextAppState extends State<YouTextApp> {
               tabIndex: _tabIndex,
               onTabSelected: _setTab,
               historyCount: _history.length,
-              isSignedIn: _currentUser != null,
               isAuthenticating: _isAuthenticating,
               user: _currentUser,
               onEmailSignIn: _openEmailSignIn,
@@ -281,6 +283,11 @@ class _YouTextAppState extends State<YouTextApp> {
               onSignOut: _signOut,
               onClearHistory: _clearHistory,
               onLanguageChanged: _changeLanguage,
+              onUserUpdated: (updatedUser) {
+                setState(() {
+                _currentUser = updatedUser; // <-- глобально сохраняем
+                });
+              },
               
             ),
             // Positioned(
@@ -586,11 +593,14 @@ class _YouTextAppState extends State<YouTextApp> {
       _showSnack('Paste a YouTube link first.');
       return;
     }
+
     if (!_includeTranscript && !_includeSummary) {
       _showSnack('Choose what to generate first.');
       return;
     }
+
     if (_isProcessing) return;
+
     setState(() {
       _isProcessing = true;
       _progress = 0;
@@ -604,11 +614,21 @@ class _YouTextAppState extends State<YouTextApp> {
     });
 
     try {
-      final record = await _simulateTranscription(
-        url,
-        includeTranscript: _includeTranscript,
-        includeSummary: _includeSummary,
-      );
+      TranscriptionRecord? record;
+
+      // ✅ если пользователь вошёл в аккаунт
+      if (_currentUser != null) {
+        record = await _videoService.getVideoSummary(url);
+      } 
+      // ✅ если пользователь без аккаунта (анон)
+      else {
+        record = await _videoService.getVideoSummaryAnon(url);
+      }
+
+      if (record == null) {
+        throw 'Backend returned null response';
+      }
+
       _progressTimer?.cancel();
       if (!mounted) return;
       setState(() {
@@ -617,9 +637,11 @@ class _YouTextAppState extends State<YouTextApp> {
         _lastResult = record;
       });
       _addToHistory(record);
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => ResultScreen(record: record)));
+
+      await navigatorKey.currentState?.push(
+        MaterialPageRoute(builder: (_) => ResultScreen(record: record!)),
+      );
+
     } catch (error) {
       _progressTimer?.cancel();
       if (!mounted) return;
@@ -627,9 +649,10 @@ class _YouTextAppState extends State<YouTextApp> {
         _isProcessing = false;
         _progress = 0;
       });
-      _showSnack('Failed to transcribe: $error');
+      _showSnack('Failed to process video: $error');
     }
-  }
+  } 
+
 
   Future<TranscriptionRecord> _simulateTranscription(
     String url, {
@@ -703,15 +726,16 @@ class _YouTextAppState extends State<YouTextApp> {
   }
 
   Future<void> _openResult(TranscriptionRecord record) async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => ResultScreen(record: record)));
+    await navigatorKey.currentState?.push(
+      MaterialPageRoute(builder: (_) => ResultScreen(record: record)),
+    );
     if (!mounted) return;
     setState(() {
       _lastResult = record;
       _tabIndex = 0;
     });
   }
+
 
   void _showSnack(String message) {
     final ctx = navigatorKey.currentContext;

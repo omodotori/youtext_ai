@@ -1,0 +1,31 @@
+aiia
+POST http://localhost:3000/api/generate Генерация текста
+
+demo(history)
+POST http://localhost:3001/api/history 		Сохранить историю
+GET http://localhost:3001/api/history  		Посмотреть истории
+GET http://localhost:3001/api/history/{user_id}  Посмотреть истории по id
+DELETE http://localhost:3001/api/history/user/{user_id} Удаляет по id
+GET http://localhost:3001/api/history/user/{user_id}/count кол-во истории
+
+
+profile
+GET http://localhost:3002/api/profile/{user_id}         Получить фото по user_id
+PUT http://localhost:3002/api/profile/{user_id}/photo  Загрузить фото по user_id
+
+auth
+POST http://localhost:3003/api/auth/register Регистрирует нового пользователя (хэширует пароль BCrypt’ом)
+POST http://localhost:3003/api/auth/login    Проверяет `email + пароль`, выдаёт **access** и **refresh токены**
+POST http://localhost:3003/api/auth/refresh  Принимает refresh-токен и возвращает новую пару токенов
+POST http://localhost:3003/api/auth/logout   Удаляет refresh-токен из БД, чтобы его нельзя было использовать
+GET* http://localhost:3003/api/user/me       Возвращает данные о текущем юзере (по access-токену)
+
+{
+	"accessToken": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzYxNTk3NzkzLCJleHAiOjE3NjE1OTg2OTN9.WX-8N3S1GularlG1vRrt5Vv8hErHEyelu3FxC2JDvKc7GhhBR-O5qQdTeRconlUI",
+	"refreshToken": "6124a68b-8858-4b3c-84fd-f768e2f30921"
+}
+
+{
+	"email": "jambul98227@gmail.com",
+	"password": "DjgDgawJoHn25136"
+}

@@ -1,0 +1,95 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend-net
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - backend-net
+
+  aiia:
+    build:
+      context: ./aiia
+      dockerfile: Dockerfile
+    container_name: aiia
+    env_file: .env
+    depends_on:
+      - postgres
+      - minio
+    ports:
+      - "3004:${AIIA_PORT}"
+    networks:
+      - backend-net
+
+  demo:
+    build:
+      context: ./demo
+      dockerfile: Dockerfile
+    container_name: demo
+    env_file: .env
+    depends_on:
+      - postgres
+      - minio
+    ports:
+      - "3001:${DEMO_PORT}"
+    networks:
+      - backend-net
+      
+  profile:
+    build:
+      context: ./profile
+      dockerfile: Dockerfile
+    container_name: profile
+    env_file: .env
+    depends_on:
+      - postgres
+      - minio
+    ports:
+      - "3002:${PROFILE_PORT}"
+    networks:
+      - backend-net
+
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: auth
+    env_file: .env
+    depends_on:
+      - postgres
+      - minio
+    ports:
+      - "3003:${AUTH_PORT}"
+    networks:
+      - backend-net
+
+volumes:
+  pg_data:
+  minio_data:
+
+networks:
+  backend-net:

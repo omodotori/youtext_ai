@@ -25,7 +25,8 @@ class AppLocalizations {
       'clips': 'clips',
       'swipeToDelete': 'Swipe to delete',
       'keepYourTranscripts': 'Keep your transcripts safe',
-      'keepYourTranscriptsDesc': 'Sign in to sync and back up your transcription history.',
+      'keepYourTranscriptsDesc':
+          'Sign in to sync and back up your transcription history.',
 
       // Profile Page
       'youtext_user': 'YouText user',
@@ -38,6 +39,7 @@ class AppLocalizations {
       'saved_transcripts': 'Saved transcripts',
       'history_info': 'History is stored locally until you sign in.',
       'clear_history': 'Clear history',
+      'sign_in_to_view_history': 'Sign in to view your transcript history',
 
       // Edit Profile Page
       'display_name': 'Display Name',
@@ -49,6 +51,15 @@ class AppLocalizations {
       'email_managed_social': 'Email is managed by your social login provider',
       'profile_updated': 'Profile updated successfully',
       'profile_update_error': 'Error updating profile',
+      'reset_password': 'Reset password',
+      'reset_password_title': 'Reset password',
+      'reset_password_confirm': 'Send a password reset email to {email}?',
+      'reset_password_no_email': 'Please enter an email to send a reset link',
+      'reset_password_sent': 'Password reset email sent to {email}',
+      'reset_password_failed': 'Failed to send password reset email',
+      'cancel': 'Cancel',
+      'send': 'Send',
+      'admin_panel': 'Admin Panel',
 
       // Home Page
       'home_title': 'YouText AI',
@@ -65,7 +76,8 @@ class AppLocalizations {
       'copied': 'Copied!',
       'nothing_here': 'Nothing here yet. Paste a YouTube link to begin!',
       'guest_mode': 'Guest mode',
-      'guest_mode_description': 'Transcribe without signing in. Create an account later to back up projects and sync them.',
+      'guest_mode_description':
+          'Transcribe without signing in. Create an account later to back up projects and sync them.',
 
       // ResultScreen
       'no_transcript_available': 'Transcript is not available for this run.',
@@ -82,8 +94,10 @@ class AppLocalizations {
       'no_transcript': 'Transcript not generated',
       'no_outline': 'Highlights not generated',
       'no_summary': 'Summary not generated',
-      'enable_transcript_message': 'Enable transcript generation and run again.',
-      'enable_summary_message': 'Turn on summary generation to get a short recap.',
+      'enable_transcript_message':
+          'Enable transcript generation and run again.',
+      'enable_summary_message':
+          'Turn on summary generation to get a short recap.',
       'copy_transcript': 'Copy transcript',
       'copy_highlights': 'Copy highlights',
       'copy_summary': 'Copy summary',
@@ -103,15 +117,18 @@ class AppLocalizations {
 
       // История
       'noTranscriptionsYet': 'Пока нет транскрипций',
-      'dropLinkToStart': 'Вставьте ссылку на YouTube с вкладки "Главная", чтобы начать создавать библиотеку.',
-      'signInToBackup': 'Войдите в систему, чтобы сохранять транскрипции между сессиями.',
+      'dropLinkToStart':
+          'Вставьте ссылку на YouTube с вкладки "Главная", чтобы начать создавать библиотеку.',
+      'signInToBackup':
+          'Войдите в систему, чтобы сохранять транскрипции между сессиями.',
       'goToHome': 'Перейти на главную',
       'transcriptLibrary': 'Ваша библиотека транскрипций',
       'clip': 'фрагмент',
       'clips': 'фрагменты',
       'swipeToDelete': 'Смахните влево, чтобы удалить',
       'keepYourTranscripts': 'Сохраняйте свои транскрипции',
-      'keepYourTranscriptsDesc': 'Сейчас всё хранится только на этом устройстве. Войдите, чтобы синхронизировать проекты с аккаунтом.',
+      'keepYourTranscriptsDesc':
+          'Сейчас всё хранится только на этом устройстве. Войдите, чтобы синхронизировать проекты с аккаунтом.',
 
       // Профиль
       'youtext_user': 'Пользователь YouText',
@@ -122,7 +139,8 @@ class AppLocalizations {
       'sign_in_email': 'Войти по email',
       'create_account': 'Создать новый аккаунт',
       'saved_transcripts': 'Сохранённые записи',
-      'history_info': 'История хранится локально, пока вы не войдёте в систему.',
+      'history_info':
+          'История хранится локально, пока вы не войдёте в систему.',
       'clear_history': 'Очистить историю',
 
       // Страница редактирования профиля
@@ -135,6 +153,17 @@ class AppLocalizations {
       'email_managed_social': 'Email управляется вашим социальным аккаунтом',
       'profile_updated': 'Профиль успешно обновлён',
       'profile_update_error': 'Ошибка при обновлении профиля',
+      'reset_password': 'Сброс пароля',
+      'reset_password_title': 'Сброс пароля',
+      'reset_password_confirm':
+          'Отправить письмо для сброса пароля на {email}?',
+      'reset_password_no_email':
+          'Пожалуйста, введите email для отправки ссылки на сброс пароля',
+      'reset_password_sent': 'Письмо для сброса пароля отправлено на {email}',
+      'reset_password_failed': 'Не удалось отправить письмо для сброса пароля',
+      'cancel': 'Отмена',
+      'send': 'Отправить',
+      'admin_panel': 'Админ-панель',
 
       // Главная
       'home_title': 'YouText AI',
@@ -149,9 +178,11 @@ class AppLocalizations {
       'result': 'Результат',
       'copy': 'Копировать',
       'copied': 'Скопировано!',
-      'nothing_here': 'Здесь пока пусто. Вставьте ссылку на YouTube, чтобы начать!',
+      'nothing_here':
+          'Здесь пока пусто. Вставьте ссылку на YouTube, чтобы начать!',
       'guest_mode': 'Гостевой режим',
-      'guest_mode_description': 'Транскрибируйте без входа в аккаунт. Создайте его позже, чтобы сохранять и синхронизировать проекты.',
+      'guest_mode_description':
+          'Транскрибируйте без входа в аккаунт. Создайте его позже, чтобы сохранять и синхронизировать проекты.',
 
       // ResultScreen
       'no_transcript_available': 'Транскрипт недоступен для этого видео.',
@@ -168,8 +199,10 @@ class AppLocalizations {
       'no_transcript': 'Транскрипт не создан',
       'no_outline': 'Основные моменты не созданы',
       'no_summary': 'Краткое содержание не создано',
-      'enable_transcript_message': 'Включите генерацию транскрипта и повторите попытку.',
-      'enable_summary_message': 'Включите генерацию краткого содержания, чтобы получить сводку.',
+      'enable_transcript_message':
+          'Включите генерацию транскрипта и повторите попытку.',
+      'enable_summary_message':
+          'Включите генерацию краткого содержания, чтобы получить сводку.',
       'copy_transcript': 'Копировать транскрипт',
       'copy_highlights': 'Копировать основные моменты',
       'copy_summary': 'Копировать краткое содержание',

@@ -3,13 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/app_user.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+// import 'package:firebase_storage/firebase_storage.dart';
 import '../l10n.dart';
+import '../services/profile_service.dart';
 
 class EditProfilePage extends StatefulWidget {
   final AppUser? user;
 
-  const EditProfilePage({super.key, this.user});
+  final void Function(AppUser? updatedUser)? onUserUpdated;
+
+  const EditProfilePage({super.key, this.user, this.onUserUpdated});
+
+  // const EditProfilePage({super.key, this.user});
 
   @override
   EditProfilePageState createState() => EditProfilePageState();
@@ -24,8 +29,9 @@ class EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    _displayNameController =
-        TextEditingController(text: widget.user?.displayName ?? '');
+    _displayNameController = TextEditingController(
+      text: widget.user?.displayName ?? '',
+    );
     _emailController = TextEditingController(text: widget.user?.email ?? '');
   }
 
@@ -38,8 +44,10 @@ class EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final picked =
-        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (picked != null) {
       setState(() {
         _pickedImage = File(picked.path);
@@ -48,48 +56,102 @@ class EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _saveProfile() async {
-    final loc = AppLocalizations.of(context);
     if (!_formKey.currentState!.validate()) return;
 
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
 
     try {
-      await user.updateDisplayName(_displayNameController.text.trim());
-
-      if (user.providerData.any((p) => p.providerId == 'password')) {
-        if (_emailController.text.trim() != user.email) {
-          await user.verifyBeforeUpdateEmail(_emailController.text.trim());
-        }
-      } else if (_emailController.text.trim() != user.email) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(loc.t('email_managed_social')),
-          ),
-        );
+      // обновляем имя локально
+      if (user != null) {
+        await user.updateDisplayName(_displayNameController.text.trim());
       }
 
       if (_pickedImage != null) {
-        final ref = FirebaseStorage.instance.ref('avatars/${user.uid}.jpg');
-        await ref.putFile(_pickedImage!);
-        final url = await ref.getDownloadURL();
-        await user.updatePhotoURL(url);
+        final success = await ProfileService().uploadAvatar(_pickedImage!);
+        if (!success) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ошибка при обновлении аватара')),
+          );
+          return;
+        }
       }
 
-      await user.reload();
-      final updatedUser = FirebaseAuth.instance.currentUser;
+      // теперь обновляем на сервере
+      final updatedUser = await ProfileService().updataUser(
+        _emailController.text.trim(),
+        _displayNameController.text.trim(),
+      );
 
       if (!mounted) return;
+      final loc = AppLocalizations.of(context);
 
+      if (updatedUser != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(loc.t('profile_updated'))));
+        widget.onUserUpdated?.call(updatedUser);
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${loc.t('profile_update_error')} (сервер)')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      final loc = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.t('profile_updated'))),
+        SnackBar(content: Text('${loc.t('profile_update_error')}: $e')),
       );
-      Navigator.pop(context, updatedUser);
+    }
+  }
+
+  Future<void> _sendPasswordReset() async {
+    final email = _emailController.text.trim();
+    // final loc = AppLocalizations.of(context);
+    if (email.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Введите email для сброса пароля')),
+      );
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Сброс пароля'),
+        content: Text('Отправить письмо для сброса пароля на $email?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Отправить'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    if (confirm != true) return;
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Письмо для сброса пароля отправлено на $email'),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${loc.t('profile_update_error')}: $e')),
+        SnackBar(
+          content: Text('Не удалось отправить письмо для сброса пароля: $e'),
+        ),
       );
     }
   }
@@ -121,11 +183,11 @@ class EditProfilePageState extends State<EditProfilePage> {
                       backgroundImage: _pickedImage != null
                           ? FileImage(_pickedImage!)
                           : (widget.user?.photoUrl != null
-                              ? NetworkImage(widget.user!.photoUrl!)
-                                  as ImageProvider
-                              : null),
-                      child: widget.user?.photoUrl == null &&
-                              _pickedImage == null
+                                ? NetworkImage(widget.user!.photoUrl!)
+                                      as ImageProvider
+                                : null),
+                      child:
+                          widget.user?.photoUrl == null && _pickedImage == null
                           ? Text(
                               widget.user?.displayName.isNotEmpty == true
                                   ? widget.user!.displayName[0].toUpperCase()
@@ -145,8 +207,11 @@ class EditProfilePageState extends State<EditProfilePage> {
                         child: CircleAvatar(
                           radius: 16,
                           backgroundColor: theme.colorScheme.primary,
-                          child: const Icon(Icons.edit,
-                              size: 18, color: Colors.white),
+                          child: const Icon(
+                            Icons.edit,
+                            size: 18,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -159,7 +224,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                 decoration: InputDecoration(
                   labelText: loc.t('display_name'),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -174,7 +240,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                 decoration: InputDecoration(
                   labelText: loc.t('email'),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -187,7 +254,16 @@ class EditProfilePageState extends State<EditProfilePage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  onPressed: _sendPasswordReset,
+                  child: const Text('Сбросить пароль'),
+                ),
+              ),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 height: 48,
