@@ -58,7 +58,7 @@ services:
       - "3001:${DEMO_PORT}"
     networks:
       - backend-net
-
+      
   profile:
     build:
       context: ./profile

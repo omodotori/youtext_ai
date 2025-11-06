@@ -62,15 +62,16 @@ class EditProfilePageState extends State<EditProfilePage> {
       // обновляем имя локально
       if (user != null) {
         await user.updateDisplayName(_displayNameController.text.trim());
+      }
 
-        if (_pickedImage != null) {
-          final ref = FirebaseStorage.instance.ref('avatars/${user.uid}.jpg');
-          await ref.putFile(_pickedImage!);
-          final url = await ref.getDownloadURL();
-          await user.updatePhotoURL(url);
+      if (_pickedImage != null) {
+        final success = await ProfileService().uploadAvatar(_pickedImage!);
+        if (!success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка при обновлении аватара')),
+          );
+          return;
         }
-
-        await user.reload();
       }
 
       // теперь обновляем на сервере

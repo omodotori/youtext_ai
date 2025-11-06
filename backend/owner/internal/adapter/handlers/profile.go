@@ -31,8 +31,9 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateAvatarID(w http.ResponseWriter, r *http.Request) {
-	if http.MethodPut != r.Method {
+	if r.Method != http.MethodPut {
 		http.Error(w, "PUT method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
 	id, ok := r.Context().Value(UserIDKey).(int64)
@@ -41,15 +42,40 @@ func (h *Handler) UpdateAvatarID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.service.GetProfileByID(int(id))
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		h.logger.Error("error:", err)
-		utils.ErrResponseInJson(w, err)
-
+		http.Error(w, "error parsing form: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	utils.ResponseInJson(w, 200, resp)
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "error retrieving file: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/jpg":  true,
+		"image/png":  true,
+		"image/webp": true,
+	}
+	if !allowedTypes[handler.Header.Get("Content-Type")] {
+		http.Error(w, "unsupported file type", http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.UpdateAvatar(int(id), file, handler.Header.Get("Content-Type"))
+	if err != nil {
+		h.logger.Error("error saving avatar:", err)
+		utils.ErrResponseInJson(w, err)
+		return
+	}
+
+	utils.ResponseInJson(w, 200, map[string]string{
+		"message": "avatar updated",
+	})
 }
 
 func (h *Handler) GetAvatar(w http.ResponseWriter, r *http.Request) {

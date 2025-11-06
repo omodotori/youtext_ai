@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
+// @Service
 public class S3Service {
     private final MinioClient minioClient;
     private final String bucketName;
@@ -33,6 +34,14 @@ public class S3Service {
                 .endpoint(url)
                 .credentials(accessKey, secretKey)
                 .build();
+
+        try {
+            if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при инициализации бакета: " + e.getMessage(), e);
+        }
     }
 
     public String uploadFile(InputStream fileStream, String contentType) throws Exception {
@@ -57,7 +66,7 @@ public class S3Service {
                         .build()
         );
 
-        return getFileUrl(fileName);
+        return fileName; // <--- возвращаем только имя файла!
     }
 
     public String getFileUrl(String fileName) throws Exception {
@@ -70,14 +79,11 @@ public class S3Service {
         );
     }
 
-    public byte[] downloadFile(String fileUrl) throws Exception {
-        // fileUrl может быть presigned URL, нам нужно вытащить имя объекта из него
-        String objectName = extractObjectName(fileUrl);
-
+    public byte[] downloadFile(String fileName) throws Exception {
         try (var stream = minioClient.getObject(
                 GetObjectArgs.builder()
                         .bucket(bucketName)
-                        .object(objectName)
+                        .object(fileName)
                         .build()
         )) {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -86,33 +92,14 @@ public class S3Service {
         }
     }
 
-    public String getFileContentType(String fileUrl) throws Exception {
-        String objectName = extractObjectName(fileUrl);
-
+    public String getFileContentType(String fileName) throws Exception {
         var stat = minioClient.statObject(
                 StatObjectArgs.builder()
                         .bucket(bucketName)
-                        .object(objectName)
+                        .object(fileName)
                         .build()
         );
-
         return stat.contentType();
     }
-
-    private String extractObjectName(String fileUrl) {
-        if (fileUrl == null || fileUrl.isBlank()) {
-            throw new IllegalArgumentException("fileUrl cannot be null or empty");
-        }
-
-        String objectName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
-
-        int qIndex = objectName.indexOf("?");
-        if (qIndex != -1) {
-            objectName = objectName.substring(0, qIndex);
-        }
-
-        return objectName;
-    }
-
-
 }
+

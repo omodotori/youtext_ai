@@ -21,7 +21,9 @@ public class UserController {
     public ResponseEntity<UserDto> uploadAvatar(
             @PathVariable("user_id") Long userId,
             @RequestParam("file") MultipartFile file
-    ) throws Exception {
+    )
+    throws Exception {
+        System.out.println("load user photo");
         return ResponseEntity.ok(new UserDto(service.updateAvatar(userId, file)));
     }
 
@@ -32,7 +34,9 @@ public class UserController {
 
     @GetMapping("/{user_id}/photo")
     public ResponseEntity<byte[]> getUserAvatar(@PathVariable("user_id") Long userId) throws Exception {
-        String avatarUrl = service.getAvatarUrl(userId);
+        System.out.println("get user photo");
+
+        String avatarUrl = service.getUser(userId).getAvatarId();
 
         // Забираем файл из MinIO
         byte[] imageBytes = service.downloadAvatar(avatarUrl);
@@ -44,7 +48,7 @@ public class UserController {
                 .body(imageBytes);
     }
 
-    @PutMapping("update/{user_id}")
+    @PutMapping("/update/{user_id}")
     public ResponseEntity<Void> updateProfile(@PathVariable("user_id") Long userId, @RequestBody UserUpdateDto userDto) {
 
         service.updateProfile(userId, userDto);

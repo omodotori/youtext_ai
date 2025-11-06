@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"owner/internal/domain/models"
 	"owner/internal/domain/ports"
 	"owner/internal/lib/logger"
@@ -59,38 +61,52 @@ func (p *profileClient) GetByID(id string) (*models.User, error) {
 	return &result, nil
 }
 
-func (p *profileClient) UpdateAvatar(id string) (*models.User, error) {
+func (p *profileClient) UpdateAvatar(id string, file multipart.File, ct string) error {
 	locInstance := "api/profile/{user_id}/photo"
-
 	pathUrl := fmt.Sprintf("http://localhost:3002/api/profile/%s/photo", id)
 
 	p.logger.Info("%s генерация запроса: %s", instance, locInstance)
-	req, err := http.NewRequest(http.MethodPut, pathUrl, nil)
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	partHeader := textproto.MIMEHeader{}
+	partHeader.Set("Content-Disposition", `form-data; name="file"; filename="avatar.jpg"`)
+	partHeader.Set("Content-Type", "image/jpeg")
+
+	part, err := writer.CreatePart(partHeader)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка генерации запроса: %w", err)
+		return fmt.Errorf("ошибка создания form part: %w", err)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	if _, err := io.Copy(part, file); err != nil {
+		return fmt.Errorf("ошибка копирования файла в форму: %w", err)
+	}
+
+	if err := writer.Close(); err != nil {
+		return fmt.Errorf("ошибка закрытия multipart writer: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPut, pathUrl, body)
+	if err != nil {
+		return fmt.Errorf("ошибка генерации запроса: %w", err)
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	p.logger.Info("%s отправка запроса: %s", instance, locInstance)
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка запроса: %w", err)
+		return fmt.Errorf("ошибка запроса: %w", err)
 	}
-
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("сервер вернул статус %d: %s", resp.StatusCode, string(body))
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("сервер вернул статус %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	var result models.User
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("ошибка декодирования JSON: %w", err)
-	}
-
-	return &result, nil
+	return nil
 }
 
 func (p *profileClient) GetUserPhoto(userID int) ([]byte, string, error) {

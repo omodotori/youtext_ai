@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"mime/multipart"
 	"owner/internal/domain/models"
 	"strconv"
 )
@@ -11,10 +12,10 @@ func (s *Service) GetProfileByID(id int) (*models.User, error) {
 	return s.ProfileClient.GetByID(newID)
 }
 
-func (s *Service) UpdateAvatar(id int) (*models.User, error) {
+func (s *Service) UpdateAvatar(id int, file multipart.File, ct string) error {
 	newID := strconv.Itoa(id)
 
-	return s.ProfileClient.UpdateAvatar(newID)
+	return s.ProfileClient.UpdateAvatar(newID, file, ct)
 }
 
 func (s *Service) GetUserPhoto(userID int) ([]byte, string, error) {

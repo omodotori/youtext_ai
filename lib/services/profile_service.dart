@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_user.dart';
 import 'auth_service.dart';
+import 'package:http_parser/http_parser.dart';
+
 
 class ProfileService {
   static const String baseUrl = 'http://localhost:8000';
@@ -99,9 +102,64 @@ class ProfileService {
         return null;
       }
     } catch (e) {
-      return null;
+        return null;
+      }
     }
-  }
+
+    Future<bool> uploadAvatar(File imageFile) async {
+      if (imageFile.path.isEmpty) return false;
+
+      try {
+        final token = await AuthService().getAccessToken();
+        if (token == null) {
+          print('Нет accessToken — пользователь не авторизован');
+          return false;
+        }
+
+        final uri = Uri.parse('$baseUrl/api/profile/update/avatar'); 
+        final request = http.MultipartRequest('PUT', uri);
+        request.headers['Authorization'] = 'Bearer $token';
+
+        final ext = imageFile.path.split('.').last.toLowerCase();
+
+        if (!['jpg', 'jpeg', 'png', 'webp'].contains(ext)) {
+          print('Недопустимый формат файла: $ext');
+          return false;
+        }
+
+        final contentType = ext == 'png'
+            ? 'image/png'
+            : ext == 'webp'
+                ? 'image/webp'
+                : 'image/jpeg';
+
+        print('Uploading file: $ext, mime: $contentType');
+
+        final multipartFile = await http.MultipartFile.fromPath(
+          'file',
+          imageFile.path,
+          contentType: MediaType.parse(contentType),
+        );
+
+        request.files.add(multipartFile);
+
+        final response = await request.send();
+
+        if (response.statusCode == 200) {
+          print('Аватар успешно обновлён');
+          return true;
+        } else {
+          final body = await response.stream.bytesToString();
+          print('Ошибка при обновлении аватара: $body');
+          return false;
+        }
+      } catch (e) {
+        print('Ошибка при отправке аватара: $e');
+        return false;
+      }
+    }
+
+
 
   
 
