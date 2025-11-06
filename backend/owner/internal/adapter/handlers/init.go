@@ -20,9 +20,10 @@ func (h *Handler) Router() http.Handler {
 	mux.Handle("/api/ai/video", AuthMiddleware(http.HandlerFunc(h.Generate))) // POST
 	mux.Handle("/api/ai/video/anon", http.HandlerFunc(h.AnonGenerate))        // POST
 
-	mux.Handle("/api/history/delete", AuthMiddleware(http.HandlerFunc(h.DeleteHistory)))          // DELETE
-	mux.Handle("/api/history/get/count", AuthMiddleware(http.HandlerFunc(h.GetHistoryCountByID))) // GET
-	mux.Handle("/api/history/get", AuthMiddleware(http.HandlerFunc(h.GetHistoryByID)))            // GET
+	mux.Handle("/api/history/delete", AuthMiddleware(http.HandlerFunc(h.DeleteHistory)))                  // DELETE
+	mux.Handle("/api/history/get/count", AuthMiddleware(http.HandlerFunc(h.GetHistoryCountByID)))         // GET
+	mux.Handle("/api/history/get", AuthMiddleware(http.HandlerFunc(h.GetHistoryByID)))                    // GET
+	mux.Handle("/api/history/delete/{history_id}", AuthMiddleware(http.HandlerFunc(h.DeleteHistoryByID))) // DELETE
 
 	mux.Handle("/api/profile/get", AuthMiddleware(http.HandlerFunc(h.GetProfile))) // GET
 	// mux.Handle("/api/profile/get/avatar", AuthMiddleware(http.HandlerFunc(h.GetProfile)))        // GET

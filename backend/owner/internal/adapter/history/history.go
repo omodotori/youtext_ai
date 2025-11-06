@@ -145,3 +145,29 @@ func (h *history) DeleteHistory(id string) error {
 
 	return nil
 }
+
+func (h *history) DeleteHistoryByID(id string) error {
+	locInstance := "api/history/{history_id}"
+
+	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
+
+	req, err := http.NewRequest(http.MethodDelete, "http://localhost:3001/api/history/"+id, nil)
+	if err != nil {
+		return fmt.Errorf("ошибка генерации запроса: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	h.logger.Info("%s отправка запроса: %s", instance, locInstance)
+	resp, err := h.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("ошибка запроса: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("сервер вернул статус %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}

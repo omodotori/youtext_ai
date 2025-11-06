@@ -2,6 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.History;
 import com.example.demo.repository.HistoryRepository;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,7 +46,11 @@ public class HistoryController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteById(@PathVariable("id") Long id) {
+    public ResponseEntity<?> deleteByHistoryId(@PathVariable Long id) {
+        if (!historyRepository.existsById(id)) {
+            return ResponseEntity.status(404).body(Map.of("error", "Not found"));
+        }
         historyRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("message", "Deleted"));
     }
 }

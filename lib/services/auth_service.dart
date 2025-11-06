@@ -5,7 +5,7 @@ import '../models/app_user.dart';
 import 'profile_service.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://localhost:8000'; // или IP компа
+  static const String baseUrl = 'http://172.25.240.1:8000'; // или IP компа
 
   Future<String?> register(String displayName, String email, String password) async {
     final url = Uri.parse('$baseUrl/api/auth/register');

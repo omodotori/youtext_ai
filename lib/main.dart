@@ -21,7 +21,7 @@ import 'pages/history_page.dart';
 import 'pages/home_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/result_screen.dart';
-
+import './services/history_service.dart';
 
 
 
@@ -264,7 +264,13 @@ class _YouTextAppState extends State<YouTextApp> {
           // history: _history,
           isSignedIn: _currentUser != null,
           onOpenRecord: _openResult,
-          onDeleteRecord: _deleteRecord,
+          onDeleteRecord: (record) async {
+            await HistoryService().deleteRecord(record.id); // Удаляем с сервера
+            setState(() {
+              // Обновляем локальный список, если он есть в этом стейте
+              _history.removeWhere((r) => r.id == record.id);
+            });
+          },
         );
       case 2:
         return Stack(

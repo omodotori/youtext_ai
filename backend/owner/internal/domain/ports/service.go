@@ -19,4 +19,5 @@ type Services interface {
 	DeleteHistory(id int) error
 	Logout(id int) error
 	UpdateUserData(id int, data models.User) error
+	DeleteHistoryByID(historyID string) error
 }

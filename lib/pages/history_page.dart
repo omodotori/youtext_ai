@@ -190,7 +190,6 @@ class _HistoryPageState extends State<HistoryPage> {
           Dismissible(
             key: ValueKey(record.id),
             direction: DismissDirection.endToStart,
-            onDismissed: (_) => widget.onDeleteRecord(record),
             background: Container(
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -203,6 +202,20 @@ class _HistoryPageState extends State<HistoryPage> {
                 color: theme.colorScheme.onErrorContainer,
               ),
             ),
+            onDismissed: (_) async {
+              // 1️⃣ Удаляем с сервера
+              await _historyService.deleteRecord(record.id);
+        
+              // 2️⃣ Удаляем из локального списка, чтобы UI обновился
+              setState(() {
+                _history.removeWhere((r) => r.id == record.id);
+              });
+        
+              // 3️⃣ Показываем уведомление
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Удалено ${record.videoTitle}')),
+              );
+            },
             child: HistoryTile(
               record: record,
               onTap: () => widget.onOpenRecord(record),

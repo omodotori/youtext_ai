@@ -5,7 +5,7 @@ import '../models/transcription_record.dart';
 import 'auth_service.dart';
 
 class HistoryService {
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://172.25.240.1:8000';
 
   Future<int> getHistoryCount() async {
     try {
@@ -88,7 +88,44 @@ class HistoryService {
     }
   }
 
-    TranscriptionRecord _parseHistoryRecord(Map<String, dynamic> json) {
+  Future<bool> deleteRecord(String historyId) async {
+    try {
+      final token = await AuthService().getAccessToken();
+      if (token == null) {
+        print('❌ Нет accessToken — пользователь не авторизован');
+        return false;
+      }
+      // /api/history/delete/{history_id}
+      final url = Uri.parse('$baseUrl/api/history/delete/$historyId');
+      print('🗑️ Отправляю DELETE-запрос: $url');
+
+      final response = await http.delete(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        print('✅ История $historyId успешно удалена');
+        return true;
+      } else if (response.statusCode == 404) {
+        print('⚠️ История с id=$historyId не найдена');
+        return false;
+      } else {
+        print('❌ Ошибка при удалении: ${response.statusCode}');
+        print('Ответ: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('💥 Ошибка deleteHistoryById: $e');
+      return false;
+    }
+  }
+
+
+  TranscriptionRecord _parseHistoryRecord(Map<String, dynamic> json) {
     final lines = (json['timecodes'] as List<dynamic>?)
             ?.map((line) => TranscriptLine(
                   timestamp: line['timecode'] ?? '',

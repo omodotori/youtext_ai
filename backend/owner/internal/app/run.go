@@ -39,7 +39,7 @@ func Run() {
 
 	slog.Info("Server launched!")
 
-	if err := http.ListenAndServe(":8000", mux); err != nil {
+	if err := http.ListenAndServe("0.0.0.0:8000", mux); err != nil {
 		panic(err)
 	}
 }

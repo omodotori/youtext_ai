@@ -22,3 +22,7 @@ func (s *Service) DeleteHistory(id int) error {
 
 	return s.HistoryClient.DeleteHistory(newID)
 }
+
+func (s *Service) DeleteHistoryByID(historyID string) error {
+	return s.HistoryClient.DeleteHistoryByID(historyID)
+}
