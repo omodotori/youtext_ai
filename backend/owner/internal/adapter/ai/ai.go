@@ -62,6 +62,37 @@ func (a *aiClient) Generate(data models.GenerateReq) (models.Summary, error) {
 		return models.Summary{}, fmt.Errorf("ошибка парсинга ответа: %w", err)
 	}
 
+	if len(videoTras.Timecodes) > 0 {
+		videoTras.VideoTitle = videoTras.Timecodes[0].Descriptions
+	} else {
+		videoTras.VideoTitle = "Untitled"
+	}
+
 	return videoTras, nil
 
+}
+
+func parseOpenAISummary(response []byte) (models.Summary, error) {
+	var summary models.Summary
+
+	if err := json.Unmarshal(response, &summary); err == nil {
+		if summary.VideoTitle != "" {
+			return summary, nil
+		}
+	}
+
+	var raw string
+	if err := json.Unmarshal(response, &raw); err != nil {
+		return models.Summary{}, fmt.Errorf("не удалось распарсить ответ как JSON или string: %w", err)
+	}
+
+	if err := json.Unmarshal([]byte(raw), &summary); err != nil {
+		return models.Summary{}, fmt.Errorf("не удалось распарсить вложенный JSON: %w", err)
+	}
+
+	if summary.VideoTitle == "" {
+		summary.VideoTitle = "Без названия видео"
+	}
+
+	return summary, nil
 }

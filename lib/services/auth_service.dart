@@ -5,7 +5,7 @@ import '../models/app_user.dart';
 import 'profile_service.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://172.25.240.1:8000'; // или IP компа
+  static const String baseUrl = 'http://192.168.0.119:8000'; // или IP компа
 
   Future<String?> register(String displayName, String email, String password) async {
     final url = Uri.parse('$baseUrl/api/auth/register');
@@ -18,6 +18,7 @@ class AuthService {
           'nickname': displayName,
           'email': email,
           'password': password,
+          'isAdmin': false
         }),
       );
 
@@ -105,12 +106,14 @@ class AuthService {
   }
 
   Future<AppUser?> signIn(String email, String password) async {
-  final error = await login(email, password);
-  if (error != null) return null;
+    final error = await login(email, password);
+    if (error != null) return null;
 
-  final profile = await ProfileService().getFullProfile();
-  return profile;
-}
+    final profile = await ProfileService().getFullProfile();
+    // print('DEBUG: user.isAdmin = ${profile.isAdmin}');
+
+    return profile;
+  }
 
 // Future<AppUser?> signUp(String displayName, String email, String password) async {
 //   final error = await register(displayName, email, password);

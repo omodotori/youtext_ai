@@ -8,6 +8,7 @@ import '../l10n.dart';
 import 'edit_profile_page.dart';
 import '../pages/auth/sign_in_page.dart';
 import '../pages/auth/sign_up_page.dart';
+import 'admin_panel_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({
@@ -252,12 +253,23 @@ class _ProfilePageState extends State<ProfilePage> {
                       final user = await _authService.signIn(email, password);
                       if (user != null) {
                         widget.onUserUpdated(user);
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Вход выполнен успешно')),
                         );
                         setState(() {
                           _user = user;
                         });
+
+                        if (_user?.isAdmin == true) {
+                          Future.microtask(() {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AdminPanelPage()),
+                            );
+                          });
+                          return null;
+                        }
                         return null;
                       } else {
                         return 'Ошибка входа';

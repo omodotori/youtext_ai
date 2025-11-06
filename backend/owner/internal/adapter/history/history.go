@@ -81,6 +81,8 @@ func (h *history) GetHistoryByID(id string) (*[]models.Summary, error) {
 		return nil, fmt.Errorf("ошибка декодирования JSON: %w", err)
 	}
 
+	fmt.Println(result)
+
 	return &result, nil
 }
 

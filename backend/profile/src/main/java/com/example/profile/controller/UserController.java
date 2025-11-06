@@ -1,8 +1,14 @@
 package com.example.profile.controller;
+import com.example.profile.models.User;
 
 import com.example.profile.dto.UserDto;
 import com.example.profile.dto.UserUpdateDto;
 import com.example.profile.services.UserService;
+
+import java.util.List;
+
+import java.util.stream.Collectors;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,5 +60,15 @@ public class UserController {
         service.updateProfile(userId, userDto);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/all/users")
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        List<User> users = service.getAllUsers(); // берём всех из БД
+        List<UserDto> dtoList = users.stream()
+                .map(UserDto::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtoList);
+    } 
 
 }

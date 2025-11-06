@@ -20,4 +20,5 @@ type Services interface {
 	Logout(id int) error
 	UpdateUserData(id int, data models.User) error
 	DeleteHistoryByID(historyID string) error
+	GetAllUsers() (*[]models.User, error)
 }

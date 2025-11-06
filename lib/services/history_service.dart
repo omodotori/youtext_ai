@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:streamlit/models/app_user.dart';
 import '../models/transcription_record.dart';
 import 'auth_service.dart';
 
+
 class HistoryService {
-  static const String baseUrl = 'http://172.25.240.1:8000';
+  static const String baseUrl = 'http://192.168.0.119:8000';
 
   Future<int> getHistoryCount() async {
     try {

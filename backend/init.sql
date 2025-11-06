@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS "user" (
     avatar_id TEXT UNIQUE,
     nickname VARCHAR(255) UNIQUE,
     password VARCHAR(255),
-    email VARCHAR(255) UNIQUE
+    email VARCHAR(255) UNIQUE,
+    is_admin BOOLEAN DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS refresh_token (

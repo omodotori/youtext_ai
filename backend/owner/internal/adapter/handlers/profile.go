@@ -27,6 +27,8 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// fmt.Println(resp)
+
 	utils.ResponseInJson(w, 200, resp)
 }
 
@@ -133,4 +135,27 @@ func (h *Handler) UpdateUserData(w http.ResponseWriter, r *http.Request) {
 	utils.ResponseInJson(w, 200, map[string]string{
 		"message": "User updated",
 	})
+}
+
+func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	if http.MethodGet != r.Method {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	_, ok := r.Context().Value(UserIDKey).(int64)
+	if !ok {
+		http.Error(w, "user id not found in context", http.StatusUnauthorized)
+		return
+	}
+
+	result, err := h.service.GetAllUsers()
+	if err != nil {
+		h.logger.Error("error:", err)
+
+		utils.ErrResponseInJson(w, err)
+		return
+	}
+
+	utils.ResponseInJson(w, 200, result)
 }

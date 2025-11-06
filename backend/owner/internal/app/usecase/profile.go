@@ -27,3 +27,7 @@ func (s *Service) UpdateUserData(id int, data models.User) error {
 
 	return s.ProfileClient.UpdateDataUser(newID, data)
 }
+
+func (s *Service) GetAllUsers() (*[]models.User, error) {
+	return s.ProfileClient.GetAllUsers()
+}

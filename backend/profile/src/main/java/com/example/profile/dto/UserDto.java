@@ -1,6 +1,7 @@
 package com.example.profile.dto;
 
 import com.example.profile.models.User;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UserDto {
     private Long id;
@@ -8,15 +9,20 @@ public class UserDto {
     private String nickname;
     private String email;
 
+    @JsonProperty("is_admin")
+    private boolean isAdmin; // добавляем поле
+
     public UserDto(User user) {
         this.id = user.getId();
         this.avatarId = user.getAvatarId();
         this.nickname = user.getNickname();
         this.email = user.getEmail();
+        this.isAdmin = user.isAdmin(); // берём из модели
     }
 
     public Long getId() { return id; }
     public String getAvatarId() { return avatarId; }
     public String getNickname() { return nickname; }
     public String getEmail() { return email; }
+    public boolean isAdmin() { return isAdmin; } // геттер для JSON
 }

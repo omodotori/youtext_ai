@@ -10,4 +10,5 @@ type ProfileClient interface {
 	UpdateAvatar(id string, file multipart.File, ct string) error
 	GetUserPhoto(userID int) ([]byte, string, error)
 	UpdateDataUser(id string, data models.User) error
+	GetAllUsers() (*[]models.User, error)
 }

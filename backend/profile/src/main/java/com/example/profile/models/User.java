@@ -21,6 +21,9 @@ public class User {
     @Column(unique = true)
     private String email;
 
+    @Column(name = "is_admin")
+    private boolean admin;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -35,4 +38,7 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public boolean isAdmin() { return admin; } // геттер
+    public void setAdmin(boolean admin) { this.admin = admin; } // сеттер
 }

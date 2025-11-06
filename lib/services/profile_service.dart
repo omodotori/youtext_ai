@@ -9,7 +9,7 @@ import 'package:http_parser/http_parser.dart';
 
 
 class ProfileService {
-  static const String baseUrl = 'http://172.25.240.1:8000';
+  static const String baseUrl = 'http://192.168.0.119:8000';
 
   Future<AppUser?> getProfile() async {
     try {
@@ -30,12 +30,12 @@ class ProfileService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        final user = AppUser.fromJson(data);
 
-        return AppUser(
-          id: data['id'].toString(),
-          email: data['email'] ?? '',
-          displayName: data['nickname'] ?? '',
-        );
+        print('DEBUG: is_admin в ответе = ${data['is_admin']}');
+        print('DEBUG: user.isAdmin = ${user.isAdmin}');
+
+        return user;
       } else {
         print('Ошибка профиля: ${response.statusCode}');
         return null;
@@ -159,16 +159,34 @@ class ProfileService {
       }
     }
 
+    Future<List<AppUser>> getAllUsers() async {
+      final token = await AuthService().getAccessToken();
+      if (token == null) return [];
+
+      final url = Uri.parse('$baseUrl/api/admin/users');
+      final response = await http.get(url, headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      });
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => AppUser.fromJson(e)).toList();
+      } else {
+        print('Ошибка загрузки пользователей: ${response.statusCode}');
+        return [];
+      }
+    }
 
 
   
 
-  Future<AppUser?> getFullProfile() async {
-    final user = await getProfile();
-    if (user == null) return null;
-
-    final photoBytes = await getProfilePhoto(user.id);
-    return user.copyWith(photoBytes: photoBytes);
-  }
+    Future<AppUser?> getFullProfile() async {
+      final user = await getProfile();
+      if (user == null) return null;
+  
+      final photoBytes = await getProfilePhoto(user.id);
+      return user.copyWith(photoBytes: photoBytes);
+    }
 
 }

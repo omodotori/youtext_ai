@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory;
 import com.example.profile.dto.UserDto;
 import com.example.profile.dto.UserUpdateDto;
 import com.example.profile.models.User;
+import java.util.List;
 import com.example.profile.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -81,4 +82,9 @@ public class UserService {
 
         return repository.save(user);
     }
+
+    public List<User> getAllUsers() {
+        return repository.findAll();
+    }
+
 }

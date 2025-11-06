@@ -28,6 +28,10 @@ class _HistoryPageState extends State<HistoryPage> {
   List<TranscriptionRecord> _history = [];
   bool _isLoading = true;
 
+  // 🔹 Для поиска
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +54,13 @@ class _HistoryPageState extends State<HistoryPage> {
 
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+
+    // 🔹 Фильтруем историю по поиску
+    final filteredHistory = _history.where((record) {
+      final query = _searchQuery.toLowerCase();
+      return record.videoTitle.toLowerCase().contains(query) ||
+          (record.summary?.toLowerCase().contains(query) ?? false);
+    }).toList();
 
     if (_history.isEmpty) {
       return ListView(
@@ -133,10 +144,42 @@ class _HistoryPageState extends State<HistoryPage> {
       key: const ValueKey('history'),
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
       children: [
+        // 🔹 Поле поиска сверху
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Search transcripts', // можно позже заменить на локализацию
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          _searchQuery = '';
+                        });
+                      },
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
+          ),
+        ),
+
         if (!widget.isSignedIn) ...[
           const _HistoryHintBanner(),
           const SizedBox(height: 16),
         ],
+
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -186,7 +229,9 @@ class _HistoryPageState extends State<HistoryPage> {
           ),
         ),
         const SizedBox(height: 20),
-        for (final record in _history) ...[
+
+        // 🔹 Фильтрованный список
+        for (final record in filteredHistory) ...[
           Dismissible(
             key: ValueKey(record.id),
             direction: DismissDirection.endToStart,
@@ -203,15 +248,10 @@ class _HistoryPageState extends State<HistoryPage> {
               ),
             ),
             onDismissed: (_) async {
-              // 1️⃣ Удаляем с сервера
               await _historyService.deleteRecord(record.id);
-        
-              // 2️⃣ Удаляем из локального списка, чтобы UI обновился
               setState(() {
                 _history.removeWhere((r) => r.id == record.id);
               });
-        
-              // 3️⃣ Показываем уведомление
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Удалено ${record.videoTitle}')),
               );
@@ -221,7 +261,7 @@ class _HistoryPageState extends State<HistoryPage> {
               onTap: () => widget.onOpenRecord(record),
             ),
           ),
-          if (record != _history.last) const SizedBox(height: 16),
+          if (record != filteredHistory.last) const SizedBox(height: 16),
         ],
       ],
     );

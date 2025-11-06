@@ -17,6 +17,8 @@ type Handler struct {
 func (h *Handler) Router() http.Handler {
 	mux := http.NewServeMux()
 
+	mux.Handle("/api/admin/users", AuthMiddleware(http.HandlerFunc(h.GetAllUsers))) // GET
+
 	mux.Handle("/api/ai/video", AuthMiddleware(http.HandlerFunc(h.Generate))) // POST
 	mux.Handle("/api/ai/video/anon", http.HandlerFunc(h.AnonGenerate))        // POST
 

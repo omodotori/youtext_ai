@@ -1,9 +1,11 @@
 package com.example.demo.entity;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,34 +15,41 @@ public class History {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty("id")
     private Long id;
 
     @Column(name = "user_id", nullable = false)
-    @JsonAlias({"user_id", "userId"})
+    @JsonProperty("user_id")
     private Integer userId;
 
     @Column(name = "video_title", length = 255, nullable = false)
-    @JsonAlias({"video_title", "videoTitle"})
+    @JsonProperty("video_title")
     private String videoTitle;
 
     @Column(columnDefinition = "TEXT")
+    @JsonProperty("link")
     private String link;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    private OffsetDateTime createdAt = OffsetDateTime.now();
 
     @Column(columnDefinition = "TEXT")
+    @JsonProperty("text")
     private String text;
 
     @Column(columnDefinition = "TEXT")
+    @JsonProperty("transcript")
     private String transcript;
 
     @OneToMany(mappedBy = "history", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
+    @JsonProperty("highlights")
     private List<Highlight> highlights = new ArrayList<>();
 
     @OneToMany(mappedBy = "history", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
+    @JsonProperty("timecodes")
     private List<Timecode> timecodes = new ArrayList<>();
 
     // --- Методы связи ---
@@ -67,8 +76,8 @@ public class History {
     public String getLink() { return link; }
     public void setLink(String link) { this.link = link; }
 
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public OffsetDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
 
     public String getText() { return text; }
     public void setText(String text) { this.text = text; }

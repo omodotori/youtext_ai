@@ -6,6 +6,7 @@ type User struct {
 	Nickname string `json:"nickname,omitempty"`
 	Password string `json:"password,omitempty"`
 	AvatarID string `json:"avatar_id,omitempty"`
+	IsAdmin  bool   `json:"is_admin,omitempty"`
 }
 
 type RegisterResp struct {

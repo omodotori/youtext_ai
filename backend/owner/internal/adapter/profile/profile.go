@@ -58,6 +58,8 @@ func (p *profileClient) GetByID(id string) (*models.User, error) {
 		return nil, fmt.Errorf("ошибка декодирования JSON: %w", err)
 	}
 
+	fmt.Println(result)
+
 	return &result, nil
 }
 
@@ -173,4 +175,35 @@ func (p *profileClient) UpdateDataUser(id string, data models.User) error {
 	}
 
 	return nil
+}
+
+func (p *profileClient) GetAllUsers() (*[]models.User, error) {
+	locInstance := "api/profile/all/users"
+
+	p.logger.Info("%s генерация запроса: %s", instance, locInstance)
+	req, err := http.NewRequest(http.MethodGet, "http://localhost:3002/api/profile/all/users", nil)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка генерации запроса: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	p.logger.Info("%s отправка запроса: %s", instance, locInstance)
+	resp, err := p.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка запроса: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("сервер вернул статус %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result []models.User
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("ошибка декодирования JSON: %w", err)
+	}
+
+	return &result, nil
 }
