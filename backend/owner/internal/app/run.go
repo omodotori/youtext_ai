@@ -20,11 +20,11 @@ import (
 func Run() {
 	config.MustLoad()
 
-	//db := database.ConnectToDB(cfg)
+	// db := database.ConnectToDB(cfg)
 
 	logg := logger.New("owner")
 
-	//go clearTokens(db, logg)
+	// go clearTokens(db, logg)
 
 	aiClient := ai.NewAIClient(logg)
 	historyClient := history.NewHistory(logg)

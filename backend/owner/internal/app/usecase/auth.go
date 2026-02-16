@@ -28,3 +28,5 @@ func (s *Service) Logout(id int) error {
 
 	return s.AuthClient.Logout(newID)
 }
+
+// deda

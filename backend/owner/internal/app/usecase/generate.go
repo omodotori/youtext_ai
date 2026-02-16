@@ -44,3 +44,5 @@ func (s *Service) AnonGenerate(data models.GenerateReq) (*models.Summary, error)
 
 	return &resp, nil
 }
+
+// Added log

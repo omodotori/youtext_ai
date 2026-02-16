@@ -5,7 +5,7 @@ import '../models/transcription_record.dart';
 import 'auth_service.dart';
 
 class VideoService {
-  static const String baseUrl = 'http://192.168.0.119:8000'; // поменяешь если нужно
+  static const String baseUrl = 'http://localhost:8000'; // поменяешь если нужно
 
   /// Получить Summary для **гостя**
   Future<TranscriptionRecord?> getVideoSummaryAnon(String videoUrl) async {

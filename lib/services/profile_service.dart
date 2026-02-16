@@ -9,7 +9,7 @@ import 'package:http_parser/http_parser.dart';
 
 
 class ProfileService {
-  static const String baseUrl = 'http://192.168.0.119:8000';
+  static const String baseUrl = 'http://localhost:8000';
 
   Future<AppUser?> getProfile() async {
     try {

@@ -37,6 +37,7 @@ func (h *Handler) Router() http.Handler {
 	mux.Handle("/api/auth/login", http.HandlerFunc(h.Login))                   // POST
 	mux.Handle("/api/auth/logout", AuthMiddleware(http.HandlerFunc(h.Logout))) // POST
 	mux.HandleFunc("/api/auth/refresh", h.NewAccessToken)
+	// mux.HandleFunc("/api/auth/password", h.NewAccessToken) 					   // PUT (update password)
 
 	return CorsMiddleware(mux)
 }

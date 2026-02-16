@@ -110,3 +110,5 @@ func (h *Handler) DeleteHistoryByID(w http.ResponseWriter, r *http.Request) {
 		"message": "History has been deleted",
 	})
 }
+
+// Added log

@@ -173,3 +173,5 @@ func (h *history) DeleteHistoryByID(id string) error {
 
 	return nil
 }
+
+// Added log

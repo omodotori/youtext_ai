@@ -207,3 +207,5 @@ func (p *profileClient) GetAllUsers() (*[]models.User, error) {
 
 	return &result, nil
 }
+
+// Added log

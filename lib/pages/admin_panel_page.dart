@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:streamlit/services/profile_service.dart';
 import '../models/app_user.dart';
+import '../services/profile_service.dart';
+import '../services/auth_service.dart';
 
 class AdminPanelPage extends StatefulWidget {
   const AdminPanelPage({super.key});
@@ -11,6 +12,8 @@ class AdminPanelPage extends StatefulWidget {
 
 class _AdminPanelPageState extends State<AdminPanelPage> {
   final ProfileService _profileService = ProfileService();
+  final AuthService _authService = AuthService();
+
   bool _isLoading = true;
   List<AppUser> _users = [];
 
@@ -32,12 +35,67 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
     }
   }
 
+  Future<void> _logout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Выход из аккаунта'),
+        content: const Text('Ты точно хочешь выйти из админки?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Выйти'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final result = await _authService.logout();
+
+      if (result == null) {
+        // токены удалены, успех
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Вы успешно вышли из аккаунта')),
+          );
+
+          // безопасно закрываем AdminPanelPage, возвращаясь на ProfilePage
+          Navigator.pop(context);
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка выхода: $result')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка выхода: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Admin Panel')),
+      appBar: AppBar(
+        title: const Text('Admin Panel'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Выйти',
+            onPressed: _logout,
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: _isLoading

@@ -35,7 +35,9 @@ public class UserController {
 
     @GetMapping("/{user_id}")
     public ResponseEntity<UserDto> getProfile(@PathVariable("user_id") Long userId) {
-        return ResponseEntity.ok(new UserDto(service.getUser(userId)));
+        UserDto dto = new UserDto(service.getUser(userId));
+        System.out.println("DEBUG: user.isAdmin = " + dto.isAdmin());
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/{user_id}/photo")

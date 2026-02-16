@@ -257,6 +257,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Вход выполнен успешно')),
                         );
+                        
                         setState(() {
                           _user = user;
                         });
@@ -278,6 +279,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     onGoogleSignIn: () async {
                       await widget.onGoogleSignIn();
                       return null;
+                    },
+                    onResetPassword: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Navigate to reset password page')),
+                      );
                     },
                   ),
                 ),

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import '../../models/app_user.dart';
+import '../../models/app_user.dart'; // Убедитесь, что путь верный
 
 class SignInPage extends StatefulWidget {
   const SignInPage({
     super.key,
     required this.onSubmit,
     required this.onGoogleSignIn,
+    required this.onResetPassword, // <--- 1. Новое требование
   });
 
   final Future<String?> Function(String email, String password) onSubmit;
   final Future<AppUser?> Function() onGoogleSignIn;
+  final VoidCallback onResetPassword; // <--- 2. Функция обратного вызова
 
   @override
   State<SignInPage> createState() => _SignInPageState();
@@ -193,10 +195,21 @@ class _SignInPageState extends State<SignInPage> {
                             ? t('Password is required.', 'Введите пароль.')
                             : null,
                   ),
+                  
+                  // --- НАЧАЛО ВСТАВКИ: Кнопка "Забыли пароль" ---
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _isSubmitting ? null : widget.onResetPassword,
+                      child: Text(t('Forgot password?', 'Забыли пароль?')),
+                    ),
+                  ),
+                  // --- КОНЕЦ ВСТАВКИ ---
+                  
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 8), // Немного уменьшил отступ, т.к. добавилась кнопка
             SizedBox(
               height: 48,
               width: double.infinity,

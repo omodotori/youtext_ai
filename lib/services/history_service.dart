@@ -7,7 +7,7 @@ import 'auth_service.dart';
 
 
 class HistoryService {
-  static const String baseUrl = 'http://192.168.0.119:8000';
+  static const String baseUrl = 'http://localhost:8000';
 
   Future<int> getHistoryCount() async {
     try {

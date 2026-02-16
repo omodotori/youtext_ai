@@ -1,24 +1,24 @@
 package utils
 
 import (
-	"errors"
 	"net"
 	"owner/internal/domain/models"
+	"owner/internal/lib/apperrors"
 	"regexp"
 	"strings"
 )
 
 func ValidateReg(data models.User) error {
 	if len(data.Password) < 8 || len(data.Password) > 32 {
-		return errors.New("Password must be between 8 and 32 characters")
+		return apperrors.ErrPasswordLong
 	}
 
 	if ok := isValidEmailMX(data.Email); !ok {
-		return errors.New("Invalid email")
+		return apperrors.ErrInvalidEmail
 	}
 
 	if len(data.Nickname) <= 2 {
-		return errors.New("Nickname is too short")
+		return apperrors.ErrNickShort
 	}
 
 	return nil

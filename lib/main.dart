@@ -566,6 +566,15 @@ class _YouTextAppState extends State<YouTextApp> {
         builder: (_) => SignInPage(
           onSubmit: _handleEmailSignIn,
           onGoogleSignIn: _handleGoogleSignInFromForm,
+          onResetPassword: () {
+            // Здесь должна быть навигация на экран сброса пароля.
+            // Например: Navigator.of(context).push(MaterialPageRoute(builder: (_) => ResetPasswordPage()));
+            
+            // Пока просто выведем сообщение в консоль или покажем снэкбар:
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Navigate to reset password page')),
+            );
+          },
         ),
       ),
     );
@@ -573,6 +582,8 @@ class _YouTextAppState extends State<YouTextApp> {
       _showSnack('Welcome back!');
     }
   }
+
+
 
 
   Future<void> _openEmailSignUp() async {
