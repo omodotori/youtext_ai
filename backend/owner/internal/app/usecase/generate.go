@@ -16,7 +16,7 @@ func (s *Service) Generate(data models.GenerateReq, userID int) (*models.Summary
 
 	fmt.Println(userID)
 	resp.UserID = userID
-	resp.Link = data.URL
+	resp.VideoURL = data.URL
 	resp.CreatedAt = time.Now()
 	fmt.Println(resp.UserID)
 	// resp.VideoTitle = "Title"
@@ -37,7 +37,7 @@ func (s *Service) AnonGenerate(data models.GenerateReq) (*models.Summary, error)
 		return nil, err
 	}
 
-	resp.Link = data.URL
+	resp.VideoURL = data.URL
 	resp.CreatedAt = time.Now()
 	// resp.VideoTitle = "Title"
 	slog.Info("text has been generated")

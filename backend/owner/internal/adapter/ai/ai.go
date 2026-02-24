@@ -19,6 +19,8 @@ type aiClient struct {
 	logger *logger.Logger
 }
 
+const url = "http://localhost:3004/"
+
 func NewAIClient(logger *logger.Logger) ports.AIClient {
 	client := http.Client{Timeout: time.Minute * 5}
 
@@ -34,7 +36,7 @@ func (a *aiClient) Generate(data models.GenerateReq) (models.Summary, error) {
 		return models.Summary{}, fmt.Errorf("ошибка сериализации JSON: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, "http://localhost:3004/api/generate", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, url+"api/generate", bytes.NewBuffer(body))
 	if err != nil {
 		return models.Summary{}, fmt.Errorf("ошибка создания запроса: %w", err)
 	}

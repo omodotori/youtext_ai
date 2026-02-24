@@ -21,6 +21,8 @@ type history struct {
 
 var instance string = "history.service:"
 
+const url = "http://localhost:3001/"
+
 func NewHistory(logger *logger.Logger) ports.HistoryClient {
 	client := http.Client{Timeout: time.Minute}
 
@@ -38,7 +40,7 @@ func (h *history) AddHistory(data models.Summary) error {
 	}
 
 	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
-	req, err := http.NewRequest(http.MethodPost, "http://localhost:3001/api/history", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, url+locInstance, bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("ошибка создания запроса: %w", err)
 	}
@@ -58,7 +60,7 @@ func (h *history) GetHistoryByID(id string) (*[]models.Summary, error) {
 	locInstance := "api/history/{user_id}"
 
 	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:3001/api/history/"+id, nil)
+	req, err := http.NewRequest(http.MethodGet, url+"api/history/"+id, nil)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка генерации запроса: %w", err)
 	}
@@ -91,7 +93,7 @@ func (h *history) GetHistoryCountByID(id string) (int, error) {
 
 	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
 
-	s := fmt.Sprintf("http://localhost:3001/api/history/user/%s/count", id)
+	s := fmt.Sprintf("%sapi/history/user/%s/count", url, id)
 
 	req, err := http.NewRequest(http.MethodGet, s, nil)
 	if err != nil {
@@ -127,7 +129,7 @@ func (h *history) DeleteHistory(id string) error {
 
 	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
 
-	req, err := http.NewRequest(http.MethodDelete, "http://localhost:3001/api/history/user/"+id, nil)
+	req, err := http.NewRequest(http.MethodDelete, url+"api/history/user/"+id, nil)
 	if err != nil {
 		return fmt.Errorf("ошибка генерации запроса: %w", err)
 	}
@@ -153,7 +155,7 @@ func (h *history) DeleteHistoryByID(id string) error {
 
 	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
 
-	req, err := http.NewRequest(http.MethodDelete, "http://localhost:3001/api/history/"+id, nil)
+	req, err := http.NewRequest(http.MethodDelete, url+"api/history/"+id, nil)
 	if err != nil {
 		return fmt.Errorf("ошибка генерации запроса: %w", err)
 	}

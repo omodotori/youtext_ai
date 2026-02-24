@@ -280,10 +280,13 @@ class _ProfilePageState extends State<ProfilePage> {
                       await widget.onGoogleSignIn();
                       return null;
                     },
-                    onResetPassword: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Navigate to reset password page')),
-                      );
+                    
+                    onRequestCode: (email) async {
+                      return await _authService.forgotPassword(email);
+                    },
+
+                    onSubmitReset: (email, code, newPassword) async {
+                      return await _authService.resetPassword(email, code, newPassword);
                     },
                   ),
                 ),

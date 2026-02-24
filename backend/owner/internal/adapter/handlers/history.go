@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"owner/internal/lib/utils"
 )
@@ -24,6 +25,8 @@ func (h *Handler) GetHistoryByID(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	fmt.Println(resp)
 
 	utils.ResponseInJson(w, 200, resp)
 }

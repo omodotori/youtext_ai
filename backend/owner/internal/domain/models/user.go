@@ -12,3 +12,10 @@ type User struct {
 type RegisterResp struct {
 	Status string `json:"status"`
 }
+
+type ResetPasswordRequest struct {
+	Code        string `json:"code,omitempty"`
+	Email       string `json:"email,omitempty"`
+	NewPassword string `json:"newPassword,omitempty"`
+	Message     string `json:"message,omitempty"`
+}

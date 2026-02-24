@@ -21,4 +21,6 @@ type Services interface {
 	UpdateUserData(id int, data models.User) error
 	DeleteHistoryByID(historyID string) error
 	GetAllUsers() (*[]models.User, error)
+	ForgotPassword(email string) error
+	ResetPassword(data *models.ResetPasswordRequest) error
 }

@@ -18,7 +18,9 @@ POST http://localhost:3003/api/auth/register Регистрирует новог
 POST http://localhost:3003/api/auth/login    Проверяет `email + пароль`, выдаёт **access** и **refresh токены**
 POST http://localhost:3003/api/auth/refresh  Принимает refresh-токен и возвращает новую пару токенов
 POST http://localhost:3003/api/auth/logout   Удаляет refresh-токен из БД, чтобы его нельзя было использовать
-GET http://localhost:3003/api/user/me       Возвращает данные о текущем юзере (по access-токену)
+POST http://localhost:3003/api/auth/forgot-password  Вводит почту для генерации кода и отправки на почту
+POST http://localhost:3003/api/auth/reset-password  После ввода кода и пароля отправляет для того чтобы поменять пароль
+GET http://localhost:3003/api/user/me        Возвращает данные о текущем юзере (по access-токену)
 
 {
 	"accessToken": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzYxNTk3NzkzLCJleHAiOjE3NjE1OTg2OTN9.WX-8N3S1GularlG1vRrt5Vv8hErHEyelu3FxC2JDvKc7GhhBR-O5qQdTeRconlUI",

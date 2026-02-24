@@ -1,13 +1,21 @@
 package com.example.demo.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "history")
@@ -26,17 +34,21 @@ public class History {
     @JsonProperty("video_title")
     private String videoTitle;
 
+    // 🔹 ИСПРАВЛЕНО: Go ждет поле "video_url", поэтому отдаем его именно так
     @Column(columnDefinition = "TEXT")
-    @JsonProperty("link")
+    @JsonProperty("video_url")
     private String link;
 
-    @Column(name = "created_at", nullable = false)
+    // 🔹 ИСПРАВЛЕНО: База данных (PostgreSQL) сама проставит время. 
+    // Java будет только отдавать его для Go под ключом "created_at" и игнорировать при сохранении.
+    @Column(name = "created_at", insertable = false, updatable = false)
+    @JsonProperty(value = "created_at", access = JsonProperty.Access.READ_ONLY)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-    private OffsetDateTime createdAt = OffsetDateTime.now();
+    private OffsetDateTime createdAt;
 
     @Column(columnDefinition = "TEXT")
-    @JsonProperty("text")
-    private String text;
+    @JsonProperty("summary")
+    private String summary;
 
     @Column(columnDefinition = "TEXT")
     @JsonProperty("transcript")
@@ -79,8 +91,10 @@ public class History {
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
 
-    public String getText() { return text; }
-    public void setText(String text) { this.text = text; }
+    // 🔹 ИСПРАВЛЕНО: Геттеры и сеттеры теперь называются getSummary / setSummary
+    // Это нужно, чтобы Jackson правильно связал их с полем @JsonProperty("summary")
+    public String getSummary() { return summary; }
+    public void setSummary(String summary) { this.summary = summary; }
 
     public String getTranscript() { return transcript; }
     public void setTranscript(String transcript) { this.transcript = transcript; }

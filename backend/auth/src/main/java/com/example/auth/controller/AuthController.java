@@ -2,6 +2,8 @@ package com.example.auth.controller;
 
 import com.example.auth.dto.AuthRequest;
 import com.example.auth.dto.AuthResponse;
+import com.example.auth.dto.PasswordResetRequest.ForgotPasswordRequest;
+import com.example.auth.dto.PasswordResetRequest.ResetPasswordRequest;
 import com.example.auth.dto.RegRequest;
 import com.example.auth.security.JwtUtil;
 import com.example.auth.service.AuthService;
@@ -45,6 +47,22 @@ public class AuthController {
     public ResponseEntity<?> logout(@PathVariable("user_id") Long userId, @RequestHeader(value = "Authorization", required = false) String authHeader) {
         authService.logout(userId);
         return ResponseEntity.ok(Map.of("status", "logged_out"));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok(Map.of("message", "Код отправлен"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request.getEmail(), request.getCode(), request.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Пароль успешно изменен"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
 }

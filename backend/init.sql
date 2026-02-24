@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS history (
     video_title VARCHAR(255) NOT NULL,
     link TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
-    text TEXT,
+    summary TEXT,
     transcript TEXT,
     CONSTRAINT fk_summary_user
         FOREIGN KEY (user_id)
@@ -48,4 +48,11 @@ CREATE TABLE IF NOT EXISTS timecodes (
         FOREIGN KEY (history_id)
         REFERENCES history (id)
         ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS password_reset_token (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    code VARCHAR(10) NOT NULL,
+    expiry_date TIMESTAMP NOT NULL
 );

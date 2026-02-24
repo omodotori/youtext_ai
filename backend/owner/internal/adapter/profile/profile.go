@@ -23,6 +23,8 @@ type profileClient struct {
 
 var instance string = "profile.service:"
 
+const url = "http://localhost:3002/"
+
 func NewProfile(logger *logger.Logger) ports.ProfileClient {
 	client := http.Client{Timeout: time.Minute}
 
@@ -33,7 +35,7 @@ func (p *profileClient) GetByID(id string) (*models.User, error) {
 	locInstance := "api/profile/{user_id}"
 
 	p.logger.Info("%s генерация запроса: %s", instance, locInstance)
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:3002/api/profile/"+id, nil)
+	req, err := http.NewRequest(http.MethodGet, url+"api/profile/"+id, nil)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка генерации запроса: %w", err)
 	}
@@ -65,7 +67,7 @@ func (p *profileClient) GetByID(id string) (*models.User, error) {
 
 func (p *profileClient) UpdateAvatar(id string, file multipart.File, ct string) error {
 	locInstance := "api/profile/{user_id}/photo"
-	pathUrl := fmt.Sprintf("http://localhost:3002/api/profile/%s/photo", id)
+	pathUrl := fmt.Sprintf("%sapi/profile/%s/photo", url, id)
 
 	p.logger.Info("%s генерация запроса: %s", instance, locInstance)
 
@@ -113,7 +115,7 @@ func (p *profileClient) UpdateAvatar(id string, file multipart.File, ct string) 
 
 func (p *profileClient) GetUserPhoto(userID int) ([]byte, string, error) {
 	locInstance := "api/profile/{id}/photo"
-	url := fmt.Sprintf("http://localhost:3002/api/profile/%d/photo", userID)
+	url := fmt.Sprintf("%sapi/profile/%d/photo", url, userID)
 
 	p.logger.Info("%s Генерация нового запроса: %s", instance, locInstance)
 
@@ -146,7 +148,7 @@ func (p *profileClient) GetUserPhoto(userID int) ([]byte, string, error) {
 func (p *profileClient) UpdateDataUser(id string, data models.User) error {
 	locInstance := "api/profile/{user_id}/update"
 
-	pathUrl := fmt.Sprintf("http://localhost:3002/api/profile/update/%s", id)
+	pathUrl := fmt.Sprintf("%sapi/profile/update/%s", url, id)
 
 	body, err := json.Marshal(data)
 	if err != nil {
@@ -181,7 +183,7 @@ func (p *profileClient) GetAllUsers() (*[]models.User, error) {
 	locInstance := "api/profile/all/users"
 
 	p.logger.Info("%s генерация запроса: %s", instance, locInstance)
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:3002/api/profile/all/users", nil)
+	req, err := http.NewRequest(http.MethodGet, url+"api/profile/all/users", nil)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка генерации запроса: %w", err)
 	}

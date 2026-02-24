@@ -94,6 +94,62 @@ class AuthService {
     }
   }
 
+  Future<String?> forgotPassword(String email) async {
+    final url = Uri.parse('$baseUrl/api/auth/forgot-password');
+    
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return null;
+      } else {
+        try {
+          final data = jsonDecode(response.body);
+          return data['error'] ?? 'Ошибка при отправке (${response.statusCode})';
+        } catch (_) {
+          return 'Ошибка сервера (${response.statusCode})';
+        }
+      }
+    } catch (e) {
+      return 'Ошибка соединения: $e';
+    }
+  }
+
+  Future<String?> resetPassword(String email, String code, String newPassword) async {
+    final url = Uri.parse('$baseUrl/api/auth/reset-password');
+    
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'code': code,
+          'newPassword': newPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return null; 
+      } else {
+        try {
+          final data = jsonDecode(response.body);
+          return data['error'] ?? 'Ошибка при смене пароля (${response.statusCode})';
+        } catch (_) {
+          return 'Неверный ответ сервера (${response.statusCode})';
+        }
+      }
+    } catch (e) {
+      return 'Ошибка соединения: $e';
+    }
+  }
+
 
   Future<String?> getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();

@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import '../../models/app_user.dart'; // Убедитесь, что путь верный
+import '../../models/app_user.dart';
+import 'reset_password_page.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({
     super.key,
     required this.onSubmit,
     required this.onGoogleSignIn,
-    required this.onResetPassword, // <--- 1. Новое требование
+    required this.onRequestCode,
+    required this.onSubmitReset,
   });
 
   final Future<String?> Function(String email, String password) onSubmit;
   final Future<AppUser?> Function() onGoogleSignIn;
-  final VoidCallback onResetPassword; // <--- 2. Функция обратного вызова
+
+  final Future<String?> Function(String email) onRequestCode;
+  final Future<String?> Function(String email, String code, String newPassword) onSubmitReset;
 
   @override
   State<SignInPage> createState() => _SignInPageState();
@@ -26,6 +30,17 @@ class _SignInPageState extends State<SignInPage> {
   bool _obscurePassword = true;
   String? _errorText;
   Locale _locale = const Locale('en');
+
+  void _openResetPasswordPage() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ForgotPasswordPage(
+          onRequestCode: widget.onRequestCode,
+          onSubmitReset: widget.onSubmitReset,
+        ),
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -196,15 +211,13 @@ class _SignInPageState extends State<SignInPage> {
                             : null,
                   ),
                   
-                  // --- НАЧАЛО ВСТАВКИ: Кнопка "Забыли пароль" ---
                   Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: _isSubmitting ? null : widget.onResetPassword,
-                      child: Text(t('Forgot password?', 'Забыли пароль?')),
-                    ),
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _isSubmitting ? null : _openResetPasswordPage, // <-- ЗАМЕНИТЬ НА ЭТО
+                        child: Text(t('Forgot password?', 'Забыли пароль?')),
+                      ),
                   ),
-                  // --- КОНЕЦ ВСТАВКИ ---
                   
                 ],
               ),

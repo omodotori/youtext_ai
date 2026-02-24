@@ -31,7 +31,7 @@ func NewBadRequest(msg string) *AppError {
 
 func NewInternal(err error) *AppError {
 	return &AppError{
-		Message: "Internal Server Error",
+		Message: "Something went wrong",
 		Code:    http.StatusInternalServerError, // 500
 		Err:     err,
 	}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"owner/internal/domain/models"
+	"owner/internal/lib/apperrors"
 	"owner/internal/lib/utils"
 )
 
@@ -108,4 +109,64 @@ func (h *Handler) NewAccessToken(w http.ResponseWriter, r *http.Request) {
 	utils.ResponseInJson(w, 200, result)
 }
 
-// Added log
+func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	if http.MethodPost != r.Method {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	body := models.ResetPasswordRequest{}
+
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		h.logger.Error("error:", err)
+
+		err = apperrors.NewInternal(err)
+
+		utils.ErrResponseInJson(w, err)
+
+		return
+	}
+
+	err = h.service.ForgotPassword(body.Email)
+	if err != nil {
+		h.logger.Error("error:", err)
+		utils.ErrResponseInJson(w, err)
+		return
+	}
+
+	utils.ResponseInJson(w, 200, map[string]string{
+		"message": "Код отправлен",
+	})
+}
+
+func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	if http.MethodPost != r.Method {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	body := models.ResetPasswordRequest{}
+
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		h.logger.Error("error:", err)
+
+		err = apperrors.NewInternal(err)
+
+		utils.ErrResponseInJson(w, err)
+
+		return
+	}
+
+	err = h.service.ResetPassword(&body)
+	if err != nil {
+		h.logger.Error("error:", err)
+		utils.ErrResponseInJson(w, err)
+		return
+	}
+
+	utils.ResponseInJson(w, 200, map[string]string{
+		"message": "Код отправлен",
+	})
+}

@@ -3,6 +3,9 @@ import '../models/transcription_record.dart';
 import '../l10n.dart';
 import '../services/history_service.dart';
 
+// 🔹 Добавляем enum для вариантов сортировки
+enum SortOption { newest, oldest, aToZ, zToA }
+
 class HistoryPage extends StatefulWidget {
   const HistoryPage({
     super.key,
@@ -32,6 +35,9 @@ class _HistoryPageState extends State<HistoryPage> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
+  // 🔹 Состояние для текущей сортировки (по умолчанию: сначала новые)
+  SortOption _sortOption = SortOption.newest;
+
   @override
   void initState() {
     super.initState();
@@ -55,12 +61,26 @@ class _HistoryPageState extends State<HistoryPage> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    // 🔹 Фильтруем историю по поиску
+    // 🔹 1. Фильтруем историю по поиску
     final filteredHistory = _history.where((record) {
       final query = _searchQuery.toLowerCase();
       return record.videoTitle.toLowerCase().contains(query) ||
           (record.summary?.toLowerCase().contains(query) ?? false);
     }).toList();
+
+    // 🔹 2. Применяем сортировку к отфильтрованному списку
+    filteredHistory.sort((a, b) {
+      switch (_sortOption) {
+        case SortOption.newest:
+          return b.createdAt.compareTo(a.createdAt);
+        case SortOption.oldest:
+          return a.createdAt.compareTo(b.createdAt);
+        case SortOption.aToZ:
+          return a.videoTitle.toLowerCase().compareTo(b.videoTitle.toLowerCase());
+        case SortOption.zToA:
+          return b.videoTitle.toLowerCase().compareTo(a.videoTitle.toLowerCase());
+      }
+    });
 
     if (_history.isEmpty) {
       return ListView(
@@ -144,34 +164,77 @@ class _HistoryPageState extends State<HistoryPage> {
       key: const ValueKey('history'),
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
       children: [
-        // 🔹 Поле поиска сверху
+        // 🔹 3. Поле поиска и кнопка сортировки в одном Row
         Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search transcripts', // можно позже заменить на локализацию
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() {
-                          _searchQuery = '';
-                        });
-                      },
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search transcripts', // можно позже заменить на локализацию
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {
+                                _searchQuery = '';
+                              });
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                ),
               ),
-            ),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
+              const SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: theme.colorScheme.outline),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: PopupMenuButton<SortOption>(
+                  icon: const Icon(Icons.sort_rounded),
+                  tooltip: 'Sort by',
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  onSelected: (SortOption result) {
+                    setState(() {
+                      _sortOption = result;
+                    });
+                  },
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<SortOption>>[
+                    const PopupMenuItem<SortOption>(
+                      value: SortOption.newest,
+                      child: Text('Newest first'), 
+                    ),
+                    const PopupMenuItem<SortOption>(
+                      value: SortOption.oldest,
+                      child: Text('Oldest first'),
+                    ),
+                    const PopupMenuItem<SortOption>(
+                      value: SortOption.aToZ,
+                      child: Text('A to Z'),
+                    ),
+                    const PopupMenuItem<SortOption>(
+                      value: SortOption.zToA,
+                      child: Text('Z to A'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
 
@@ -230,7 +293,7 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
         const SizedBox(height: 20),
 
-        // 🔹 Фильтрованный список
+        // 🔹 Выводим отфильтрованный и отсортированный список
         for (final record in filteredHistory) ...[
           Dismissible(
             key: ValueKey(record.id),

@@ -7,4 +7,6 @@ type AuthClient interface {
 	Login(data models.User) (*models.Tokens, error)
 	NewAccessToken(refreshToken *models.Tokens) (*models.Tokens, error)
 	Logout(id string) error
+	ForgotPassword(email string) error
+	ResetPassword(data *models.ResetPasswordRequest) error
 }

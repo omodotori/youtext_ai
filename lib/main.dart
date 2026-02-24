@@ -22,6 +22,7 @@ import 'pages/home_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/result_screen.dart';
 import './services/history_service.dart';
+import '../services/auth_service.dart';
 
 
 
@@ -566,14 +567,11 @@ class _YouTextAppState extends State<YouTextApp> {
         builder: (_) => SignInPage(
           onSubmit: _handleEmailSignIn,
           onGoogleSignIn: _handleGoogleSignInFromForm,
-          onResetPassword: () {
-            // Здесь должна быть навигация на экран сброса пароля.
-            // Например: Navigator.of(context).push(MaterialPageRoute(builder: (_) => ResetPasswordPage()));
-            
-            // Пока просто выведем сообщение в консоль или покажем снэкбар:
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Navigate to reset password page')),
-            );
+          onRequestCode: (email) async {
+            return await AuthService().forgotPassword(email);
+          },
+          onSubmitReset: (email, code, newPassword) async {
+            return await AuthService().resetPassword(email, code, newPassword);
           },
         ),
       ),
@@ -582,9 +580,6 @@ class _YouTextAppState extends State<YouTextApp> {
       _showSnack('Welcome back!');
     }
   }
-
-
-
 
   Future<void> _openEmailSignUp() async {
     final result = await Navigator.of(context).push<bool>(

@@ -3,11 +3,13 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"owner/internal/domain/models"
 	"owner/internal/domain/ports"
+	"owner/internal/lib/apperrors"
 	"owner/internal/lib/logger"
 	"sync"
 	"time"
@@ -20,6 +22,8 @@ type authClient struct {
 	mu     sync.Mutex
 	logger *logger.Logger
 }
+
+const url = "http://localhost:3003/"
 
 func NewAuth(logger *logger.Logger) ports.AuthClient {
 	client := http.Client{Timeout: time.Minute}
@@ -39,7 +43,7 @@ func (h *authClient) Register(data models.User) (*models.RegisterResp, error) {
 	}
 
 	h.logger.Info("%s Генерация нового запроса: %s", instance, locInstance)
-	req, err := http.NewRequest(http.MethodPost, "http://localhost:3003/api/auth/register", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, url+locInstance, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, fmt.Errorf("ошибка создания запроса: %w", err)
 	}
@@ -79,7 +83,7 @@ func (h *authClient) Login(data models.User) (*models.Tokens, error) {
 	}
 
 	h.logger.Info("%s Генерация нового запроса: %s", instance, locInstance)
-	req, err := http.NewRequest(http.MethodPost, "http://localhost:3003/api/auth/login", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, url+locInstance, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, fmt.Errorf("ошибка создания запроса: %w", err)
 	}
@@ -113,13 +117,13 @@ func (h *authClient) Login(data models.User) (*models.Tokens, error) {
 }
 
 func (h *authClient) Logout(id string) error {
-	locInstance := "api/auth/login"
+	locInstance := "api/auth/logout/"
 
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
 	h.logger.Info("%s Генерация нового запроса: %s", instance, locInstance)
-	req, err := http.NewRequest(http.MethodPost, "http://localhost:3003/api/auth/logout/"+id, nil)
+	req, err := http.NewRequest(http.MethodPost, url+locInstance+id, nil)
 	if err != nil {
 		return fmt.Errorf("ошибка создания запроса: %w", err)
 	}
@@ -151,7 +155,7 @@ func (h *authClient) NewAccessToken(refreshToken *models.Tokens) (*models.Tokens
 	}
 
 	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
-	req, err := http.NewRequest(http.MethodPost, "http://localhost:3003/api/auth/refresh", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, url+locInstance, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, fmt.Errorf("ошибка создания запроса: %w", err)
 	}
@@ -181,4 +185,76 @@ func (h *authClient) NewAccessToken(refreshToken *models.Tokens) (*models.Tokens
 	}
 
 	return &result, nil
+}
+
+func (h *authClient) ForgotPassword(email string) error {
+	locInstance := "api/auth/forgot-password"
+
+	type locStruct struct {
+		Email string `json:"email,omitempty"`
+	}
+
+	bodySend := locStruct{Email: email}
+
+	body, err := json.Marshal(&bodySend)
+	if err != nil {
+		return apperrors.NewInternal(err)
+	}
+
+	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
+
+	req, err := http.NewRequest(http.MethodPost, url+locInstance, bytes.NewBuffer(body))
+	if err != nil {
+		return apperrors.NewInternal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	h.logger.Info("%s отправка запроса: %s", instance, locInstance)
+	resp, err := h.client.Do(req)
+	if err != nil {
+		return apperrors.NewInternal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		err := errors.New("Something went wrong")
+
+		return apperrors.NewInternal(err)
+	}
+
+	return nil
+}
+
+func (h *authClient) ResetPassword(data *models.ResetPasswordRequest) error {
+	locInstance := "api/auth/reset-password"
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return apperrors.NewInternal(err)
+	}
+
+	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
+
+	req, err := http.NewRequest(http.MethodPost, url+locInstance, bytes.NewBuffer(body))
+	if err != nil {
+		return apperrors.NewInternal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	h.logger.Info("%s отправка запроса: %s", instance, locInstance)
+	resp, err := h.client.Do(req)
+	if err != nil {
+		return apperrors.NewInternal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		buff, _ := io.ReadAll(resp.Body)
+
+		return apperrors.NewBadRequest(string(buff))
+	}
+
+	return nil
 }

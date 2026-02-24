@@ -146,8 +146,12 @@ func (s *Service) generateSummary(transcript, typ string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	if len(resp.Choices) == 0 {
 		return "", fmt.Errorf("empty response from model")
 	}
+
+	fmt.Println(resp.Choices[0].Message.Content)
+
 	return resp.Choices[0].Message.Content, nil
 }

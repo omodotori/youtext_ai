@@ -159,3 +159,5 @@ func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 	utils.ResponseInJson(w, 200, result)
 }
+
+// Added log

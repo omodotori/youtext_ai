@@ -31,6 +31,15 @@ services:
     networks:
       - backend-net
 
+  mail:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    ports:
+      - "8025:8025" 
+      - "1025:1025" 
+    networks:
+      - backend-net
+
   aiia:
     build:
       context: ./aiia
@@ -82,6 +91,7 @@ services:
     depends_on:
       - postgres
       - minio
+      - mail
     ports:
       - "3003:${AUTH_PORT}"
     networks:

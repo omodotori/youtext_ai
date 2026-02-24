@@ -29,4 +29,10 @@ func (s *Service) Logout(id int) error {
 	return s.AuthClient.Logout(newID)
 }
 
-// deda
+func (s *Service) ForgotPassword(email string) error {
+	return s.AuthClient.ForgotPassword(email)
+}
+
+func (s *Service) ResetPassword(data *models.ResetPasswordRequest) error {
+	return s.AuthClient.ResetPassword(data)
+}
