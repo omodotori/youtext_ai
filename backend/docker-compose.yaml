@@ -54,17 +54,16 @@ services:
     networks:
       - backend-net
 
-  demo:
+  history:
     build:
-      context: ./demo
+      context: ./history
       dockerfile: Dockerfile
-    container_name: demo
+    container_name: history
     env_file: .env
     depends_on:
       - postgres
-      - minio
     ports:
-      - "3001:${DEMO_PORT}"
+      - "3001:${HISTORY_PORT}"
     networks:
       - backend-net
       

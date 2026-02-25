@@ -1,9 +1,6 @@
-package lib
+package models
 
-import (
-	"encoding/json"
-	"time"
-)
+import "time"
 
 type History struct {
 	ID         int64       `json:"id"`
@@ -30,10 +27,8 @@ type Timecode struct {
 	HistoryID    int64  `json:"history_id"`
 }
 
-func ParseJSON(jsonStr string) (*History, error) {
-	var summary History
-	if err := json.Unmarshal([]byte(jsonStr), &summary); err != nil {
-		return nil, err
-	}
-	return &summary, nil
+type User struct {
+	ID       int64  `json:"id"`
+	AvatarID string `json:"avatar_id"`
+	Email    string `json:"email"`
 }

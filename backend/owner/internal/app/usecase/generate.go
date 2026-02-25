@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (s *Service) Generate(data models.GenerateReq, userID int) (*models.Summary, error) {
+func (s *Service) Generate(data models.GenerateReq, userID int) (*models.History, error) {
 	resp, err := s.AIClient.Generate(data)
 	if err != nil {
 		return nil, err
@@ -16,28 +16,29 @@ func (s *Service) Generate(data models.GenerateReq, userID int) (*models.Summary
 
 	fmt.Println(userID)
 	resp.UserID = userID
-	resp.VideoURL = data.URL
+	resp.Link = data.URL
 	resp.CreatedAt = time.Now()
 	fmt.Println(resp.UserID)
-	// resp.VideoTitle = "Title"
+
+	fmt.Println("--------------------------------------------------------")
+	fmt.Println("--------------------------------------------------------")
+	fmt.Println(resp)
 
 	if err := s.HistoryClient.AddHistory(resp); err != nil {
 		return nil, err
 	}
 	slog.Info("text has been added to history")
 
-	fmt.Println(resp)
-
 	return &resp, nil
 }
 
-func (s *Service) AnonGenerate(data models.GenerateReq) (*models.Summary, error) {
+func (s *Service) AnonGenerate(data models.GenerateReq) (*models.History, error) {
 	resp, err := s.AIClient.Generate(data)
 	if err != nil {
 		return nil, err
 	}
 
-	resp.VideoURL = data.URL
+	resp.Link = data.URL
 	resp.CreatedAt = time.Now()
 	// resp.VideoTitle = "Title"
 	slog.Info("text has been generated")

@@ -6,11 +6,11 @@ import (
 )
 
 type Services interface {
-	Generate(data models.GenerateReq, userID int) (*models.Summary, error)
-	AnonGenerate(data models.GenerateReq) (*models.Summary, error)
+	Generate(data models.GenerateReq, userID int) (*models.History, error)
+	AnonGenerate(data models.GenerateReq) (*models.History, error)
 	Login(data models.User) (*models.Tokens, error)
 	Register(data models.User) (*models.RegisterResp, error)
-	GetHistoryByID(id int) (*[]models.Summary, error)
+	GetHistoryByID(id int) (*[]models.History, error)
 	GetProfileByID(id int) (*models.User, error)
 	UpdateAvatar(id int, file multipart.File, ct string) error
 	NewAccessToken(data models.Tokens) (*models.Tokens, error)

@@ -29,7 +29,7 @@ func NewHistory(logger *logger.Logger) ports.HistoryClient {
 	return &history{client: client, logger: logger}
 }
 
-func (h *history) AddHistory(data models.Summary) error {
+func (h *history) AddHistory(data models.History) error {
 	locInstance := "api/history"
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -56,7 +56,7 @@ func (h *history) AddHistory(data models.Summary) error {
 	return nil
 }
 
-func (h *history) GetHistoryByID(id string) (*[]models.Summary, error) {
+func (h *history) GetHistoryByID(id string) (*[]models.History, error) {
 	locInstance := "api/history/{user_id}"
 
 	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
@@ -78,7 +78,7 @@ func (h *history) GetHistoryByID(id string) (*[]models.Summary, error) {
 		return nil, fmt.Errorf("сервер вернул статус %d: %s", resp.StatusCode, string(body))
 	}
 
-	var result []models.Summary
+	var result []models.History
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("ошибка декодирования JSON: %w", err)
 	}

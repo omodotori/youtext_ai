@@ -27,7 +27,7 @@ func NewService(log *logrus.Logger, openaiKey, ytdlpCmd string) *Service {
 	return &Service{log: log, openai: client, ytdlpCmd: ytdlpCmd}
 }
 
-func (s *Service) Process(videoURL, typ string) (*lib.Summary, error) {
+func (s *Service) Process(videoURL, typ string) (*lib.History, error) {
 	tmpDir := os.TempDir()
 	outFile := filepath.Join(tmpDir, fmt.Sprintf("audio-%d.mp3", time.Now().UnixNano()))
 
@@ -107,11 +107,14 @@ func (s *Service) generateSummary(transcript, typ string) (string, error) {
 
 Формат:
 {
-  "video_title": "тай",
+  "video_title": "string",
   "link": "string",
-  "text": "string (summary)",
+  "summary": "string",
   "transcript": "string (full text or short version)",
-  "highlights": ["string", "string"],
+  "highlights": [
+  	{"id": 0, "highlight": "string", "history_id": 0},
+	{"id": 0, "highlight": "string", "history_id": 0}
+	],
   "timecodes": [
     {"timecode": "00:00", "descriptions": "string"},
     {"timecode": "02:00", "descriptions": "string"}
