@@ -211,3 +211,23 @@ class EditProfilePageState extends State<EditProfilePage> {
     );
   }
 }
+
+class ProfileValidators {
+  static String? validateName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'empty_name';
+    }
+    return null;
+  }
+
+  static String? validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'empty_email';
+    }
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    if (!emailRegex.hasMatch(value.trim())) {
+      return 'invalid_email';
+    }
+    return null;
+  }
+}

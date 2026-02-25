@@ -66,8 +66,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
             const SnackBar(content: Text('Вы успешно вышли из аккаунта')),
           );
 
-          // безопасно закрываем AdminPanelPage, возвращаясь на ProfilePage
-          Navigator.pop(context);
+          Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
