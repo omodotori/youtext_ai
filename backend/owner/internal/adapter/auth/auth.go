@@ -251,9 +251,12 @@ func (h *authClient) ResetPassword(data *models.ResetPasswordRequest) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		buff, _ := io.ReadAll(resp.Body)
+		var javaResponse map[string]string
+		json.NewDecoder(resp.Body).Decode(&javaResponse)
 
-		return apperrors.NewBadRequest(string(buff))
+		errMsg := javaResponse["error"]
+
+		return apperrors.NewBadRequest(errMsg)
 	}
 
 	return nil

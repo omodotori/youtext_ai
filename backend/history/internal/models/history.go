@@ -32,3 +32,15 @@ type User struct {
 	AvatarID string `json:"avatar_id"`
 	Email    string `json:"email"`
 }
+
+type HistoryResponse struct {
+	ID         int64      `json:"id"`
+	UserID     int        `json:"user_id"`
+	VideoTitle string     `json:"video_title"`
+	Link       string     `json:"link"`
+	CreatedAt  time.Time  `json:"created_at"`
+	Summary    string     `json:"summary"`
+	Transcript string     `json:"transcript"`
+	Highlights []string   `json:"highlights"`
+	Timecodes  []Timecode `json:"timecodes"`
+}

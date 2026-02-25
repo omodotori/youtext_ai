@@ -3,7 +3,6 @@ import '../models/transcription_record.dart';
 import '../l10n.dart';
 import '../services/history_service.dart';
 
-// 🔹 Добавляем enum для вариантов сортировки
 enum SortOption { newest, oldest, aToZ, zToA }
 
 class HistoryPage extends StatefulWidget {
@@ -31,11 +30,9 @@ class _HistoryPageState extends State<HistoryPage> {
   List<TranscriptionRecord> _history = [];
   bool _isLoading = true;
 
-  // 🔹 Для поиска
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
-  // 🔹 Состояние для текущей сортировки (по умолчанию: сначала новые)
   SortOption _sortOption = SortOption.newest;
 
   @override
@@ -61,14 +58,12 @@ class _HistoryPageState extends State<HistoryPage> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
 
-    // 🔹 1. Фильтруем историю по поиску
     final filteredHistory = _history.where((record) {
       final query = _searchQuery.toLowerCase();
       return record.videoTitle.toLowerCase().contains(query) ||
           (record.summary?.toLowerCase().contains(query) ?? false);
     }).toList();
 
-    // 🔹 2. Применяем сортировку к отфильтрованному списку
     filteredHistory.sort((a, b) {
       switch (_sortOption) {
         case SortOption.newest:
@@ -164,7 +159,6 @@ class _HistoryPageState extends State<HistoryPage> {
       key: const ValueKey('history'),
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
       children: [
-        // 🔹 3. Поле поиска и кнопка сортировки в одном Row
         Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: Row(
@@ -293,7 +287,6 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
         const SizedBox(height: 20),
 
-        // 🔹 Выводим отфильтрованный и отсортированный список
         for (final record in filteredHistory) ...[
           Dismissible(
             key: ValueKey(record.id),

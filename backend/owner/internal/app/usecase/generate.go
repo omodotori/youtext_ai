@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"fmt"
 	"log/slog"
 	"owner/internal/domain/models"
 	"time"
@@ -14,15 +13,9 @@ func (s *Service) Generate(data models.GenerateReq, userID int) (*models.History
 	}
 	slog.Info("text has been generated")
 
-	fmt.Println(userID)
 	resp.UserID = userID
 	resp.Link = data.URL
 	resp.CreatedAt = time.Now()
-	fmt.Println(resp.UserID)
-
-	fmt.Println("--------------------------------------------------------")
-	fmt.Println("--------------------------------------------------------")
-	fmt.Println(resp)
 
 	if err := s.HistoryClient.AddHistory(resp); err != nil {
 		return nil, err

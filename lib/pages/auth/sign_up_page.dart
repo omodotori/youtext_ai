@@ -187,7 +187,8 @@ class _SignUpPageState extends State<SignUpPage> {
                       if (value == null || value.trim().isEmpty) {
                         return t('Email is required.', 'Введите почту.');
                       }
-                      final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+                      // Регулярка синхронизирована с бэкендом
+                      final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
                       if (!emailRegex.hasMatch(value.trim())) {
                         return t('Enter a valid email.', 'Введите корректный адрес.');
                       }
@@ -212,8 +213,12 @@ class _SignUpPageState extends State<SignUpPage> {
                       if (value == null || value.isEmpty) {
                         return t('Password is required.', 'Введите пароль.');
                       }
-                      if (value.length < 6) {
-                        return t('Password must be at least 6 characters.', 'Пароль должен быть не короче 6 символов.');
+                      // Проверка на длину от 8 до 32 символов
+                      if (value.length < 8) {
+                        return t('Password must be at least 8 characters.', 'Пароль должен быть не короче 8 символов.');
+                      }
+                      if (value.length > 32) {
+                        return t('Password must not exceed 32 characters.', 'Пароль не должен превышать 32 символа.');
                       }
                       return null;
                     },
@@ -258,15 +263,7 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: OutlinedButton.icon(
-                onPressed: _isSubmitting ? null : _signInWithGoogle,
-                icon: const Icon(Icons.login_rounded),
-                label: Text(t('Continue with Google', 'Войти через Google')),
-              ),
-            ),
+            
           ],
         ),
       ),

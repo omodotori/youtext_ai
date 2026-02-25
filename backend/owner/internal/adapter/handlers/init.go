@@ -67,12 +67,27 @@ func (h *Handler) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.service.Generate(body, int(userID))
+	history, err := h.service.Generate(body, int(userID))
 	if err != nil {
 		h.logger.Error("error:", err)
 		utils.ErrResponseInJson(w, err)
 
 		return
+	}
+
+	resp := models.HistoryResponse{
+		ID:         history.ID,
+		UserID:     history.UserID,
+		VideoTitle: history.VideoTitle,
+		Link:       history.Link,
+		CreatedAt:  history.CreatedAt,
+		Summary:    history.Summary,
+		Transcript: history.Transcript,
+		Timecodes:  history.Timecodes,
+	}
+
+	for _, r := range history.Highlights {
+		resp.Highlights = append(resp.Highlights, r.Highlight)
 	}
 
 	utils.ResponseInJson(w, 200, resp)

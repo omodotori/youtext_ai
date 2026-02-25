@@ -238,15 +238,7 @@ class _SignInPageState extends State<SignInPage> {
               ),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 48,
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _isSubmitting ? null : _signInWithGoogle,
-                icon: const Icon(Icons.login_rounded),
-                label: Text(t('Continue with Google', 'Войти через Google')),
-              ),
-            ),
+           
           ],
         ),
       ),

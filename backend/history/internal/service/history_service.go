@@ -9,7 +9,7 @@ import (
 type HistoryService interface {
 	CreateHistory(ctx context.Context, h *models.History) error
 	GetAllHistories(ctx context.Context) ([]models.History, error)
-	GetHistoriesByUser(ctx context.Context, userID int) ([]models.History, error)
+	GetHistoriesByUser(ctx context.Context, userID int) ([]models.HistoryResponse, error)
 	DeleteUserHistories(ctx context.Context, userID int) error
 	GetHistoryCount(ctx context.Context, userID int) (int64, error)
 	DeleteHistoryByID(ctx context.Context, id int64) (bool, error)
@@ -31,7 +31,7 @@ func (s *historyService) GetAllHistories(ctx context.Context) ([]models.History,
 	return s.repo.FindAll(ctx)
 }
 
-func (s *historyService) GetHistoriesByUser(ctx context.Context, userID int) ([]models.History, error) {
+func (s *historyService) GetHistoriesByUser(ctx context.Context, userID int) ([]models.HistoryResponse, error) {
 	return s.repo.FindByUserID(ctx, userID)
 }
 

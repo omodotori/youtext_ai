@@ -12,14 +12,14 @@ class ResultScreen extends StatefulWidget {
   State<ResultScreen> createState() => _ResultScreenState();
 }
 
-enum _ContentView { transcript, outline, summary }
+enum _ContentView { transcript, timecodes, outline, summary }
 
 class _ResultScreenState extends State<ResultScreen> {
   late final TextEditingController _editController;
   late _ContentView _view;
 
-  bool get _hasTranscript =>
-      widget.record.transcript.trim().isNotEmpty || widget.record.lines.isNotEmpty;
+  bool get _hasTranscript => widget.record.transcript.trim().isNotEmpty;
+  bool get _hasTimecodes => widget.record.lines.isNotEmpty;
   bool get _hasOutline => widget.record.highlights.isNotEmpty;
   bool get _hasSummary => widget.record.summary.trim().isNotEmpty;
 
@@ -47,6 +47,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
   _ContentView _initialView() {
     if (_hasTranscript) return _ContentView.transcript;
+    if (_hasTimecodes) return _ContentView.timecodes;
     if (_hasSummary) return _ContentView.summary;
     if (_hasOutline) return _ContentView.outline;
     return _ContentView.transcript;
@@ -56,6 +57,8 @@ class _ResultScreenState extends State<ResultScreen> {
     switch (_view) {
       case _ContentView.transcript:
         return _hasTranscript;
+      case _ContentView.timecodes:
+        return _hasTimecodes;
       case _ContentView.outline:
         return _hasOutline;
       case _ContentView.summary:
@@ -74,13 +77,21 @@ class _ResultScreenState extends State<ResultScreen> {
         Clipboard.setData(ClipboardData(text: _editController.text));
         _showSnack(l10n.t('transcript_copied'));
         break;
+      case _ContentView.timecodes:
+        if (!_hasTimecodes) return;
+        final timecodesText = widget.record.lines
+            .map((line) => '[${line.timestamp}] ${line.text}')
+            .join('\n');
+        Clipboard.setData(ClipboardData(text: timecodesText));
+        _showSnack(l10n.t('timecodes_copied')); // Добавьте этот ключ в переводы
+        break;
       case _ContentView.outline:
         if (!_hasOutline) {
           _showSnack(l10n.t('no_highlights_available'));
           return;
         }
         final bulletList =
-            widget.record.highlights.map((item) => '- $item').join('\n');
+            widget.record.highlights.map((item) => '• $item').join('\n');
         Clipboard.setData(ClipboardData(text: bulletList));
         _showSnack(l10n.t('highlights_copied'));
         break;
@@ -196,6 +207,7 @@ class _ResultScreenState extends State<ResultScreen> {
             current: _view,
             onChanged: (value) => setState(() => _view = value),
             hasTranscript: _hasTranscript,
+            hasTimecodes: _hasTimecodes,
             hasOutline: _hasOutline,
             hasSummary: _hasSummary,
           ),
@@ -219,13 +231,34 @@ class _ResultScreenState extends State<ResultScreen> {
               title: l10n.t('no_transcript'),
               message: l10n.t('enable_transcript_message'));
         }
-        return Column(
+        return Padding(
           key: const ValueKey('transcript-content'),
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: SelectableText(
+            widget.record.transcript,
+            style: theme.textTheme.bodyLarge?.copyWith(height: 1.6),
+          ),
+        );
+
+      case _ContentView.timecodes:
+        if (!_hasTimecodes) {
+          return _buildUnavailableState(theme,
+              key: const ValueKey('timecodes-empty'),
+              icon: Icons.access_time_rounded,
+              title: l10n.t('no_transcript'), // Можно заменить на no_timecodes
+              message: l10n.t('enable_transcript_message'));
+        }
+        return Column(
+          key: const ValueKey('timecodes-content'),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: widget.record.lines.map((line) {
             return ListTile(
+              contentPadding: EdgeInsets.zero,
               title: Text(line.text),
-              subtitle: Text(line.timestamp),
+              subtitle: Text(
+                line.timestamp,
+                style: TextStyle(color: theme.colorScheme.primary),
+              ),
               onTap: () => _copyLine(line),
             );
           }).toList(),
@@ -242,10 +275,34 @@ class _ResultScreenState extends State<ResultScreen> {
         return Column(
           key: const ValueKey('outline-content'),
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: widget.record.highlights.map((item) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Text("- $item"),
-          )).toList(),
+          children: widget.record.highlights.map((item) {
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              elevation: 0,
+              color: theme.colorScheme.surfaceContainerLow,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: theme.colorScheme.outlineVariant),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.lightbulb_outline,
+                        color: theme.colorScheme.primary, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        item,
+                        style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
         );
 
       case _ContentView.summary:
@@ -259,7 +316,10 @@ class _ResultScreenState extends State<ResultScreen> {
         return Padding(
           key: const ValueKey('summary-content'),
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Text(widget.record.summary),
+          child: SelectableText(
+            widget.record.summary,
+            style: theme.textTheme.bodyLarge?.copyWith(height: 1.6),
+          ),
         );
     }
   }
@@ -304,6 +364,8 @@ class _ResultScreenState extends State<ResultScreen> {
     switch (_view) {
       case _ContentView.transcript:
         return l10n.t('copy_transcript');
+      case _ContentView.timecodes:
+        return l10n.t('copy_timecodes'); // Добавьте этот ключ в переводы
       case _ContentView.outline:
         return l10n.t('copy_highlights');
       case _ContentView.summary:
@@ -317,6 +379,7 @@ class _ContentSelector extends StatelessWidget {
     required this.current,
     required this.onChanged,
     required this.hasTranscript,
+    required this.hasTimecodes,
     required this.hasOutline,
     required this.hasSummary,
   });
@@ -324,6 +387,7 @@ class _ContentSelector extends StatelessWidget {
   final _ContentView current;
   final ValueChanged<_ContentView> onChanged;
   final bool hasTranscript;
+  final bool hasTimecodes;
   final bool hasOutline;
   final bool hasSummary;
 
@@ -331,18 +395,19 @@ class _ContentSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Wrap(
-      spacing: 12,
+      spacing: 8,
       runSpacing: 8,
       children: _ContentView.values.map((view) {
         final enabled = switch (view) {
           _ContentView.transcript => hasTranscript,
+          _ContentView.timecodes => hasTimecodes,
           _ContentView.outline => hasOutline,
           _ContentView.summary => hasSummary,
         };
         final selected = current == view;
         return ChoiceChip(
           label: Text(_label(view, l10n)),
-          avatar: Icon(_icon(view), size: 18),
+          avatar: Icon(_icon(view), size: 16),
           selected: selected,
           onSelected: enabled ? (_) => onChanged(view) : null,
         );
@@ -354,6 +419,8 @@ class _ContentSelector extends StatelessWidget {
     switch (view) {
       case _ContentView.transcript:
         return l10n.t('transcript');
+      case _ContentView.timecodes:
+        return l10n.t('timecodes'); // Добавьте этот ключ в переводы
       case _ContentView.outline:
         return l10n.t('highlights');
       case _ContentView.summary:
@@ -364,9 +431,11 @@ class _ContentSelector extends StatelessWidget {
   IconData _icon(_ContentView view) {
     switch (view) {
       case _ContentView.transcript:
-        return Icons.article_outlined;
+        return Icons.notes_rounded;
+      case _ContentView.timecodes:
+        return Icons.access_time_rounded;
       case _ContentView.outline:
-        return Icons.list_alt_rounded;
+        return Icons.lightbulb_outline_rounded;
       case _ContentView.summary:
         return Icons.bolt_outlined;
     }

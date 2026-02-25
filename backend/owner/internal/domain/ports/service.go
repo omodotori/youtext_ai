@@ -10,7 +10,7 @@ type Services interface {
 	AnonGenerate(data models.GenerateReq) (*models.History, error)
 	Login(data models.User) (*models.Tokens, error)
 	Register(data models.User) (*models.RegisterResp, error)
-	GetHistoryByID(id int) (*[]models.History, error)
+	GetHistoryByID(id int) (*[]models.HistoryResponse, error)
 	GetProfileByID(id int) (*models.User, error)
 	UpdateAvatar(id int, file multipart.File, ct string) error
 	NewAccessToken(data models.Tokens) (*models.Tokens, error)

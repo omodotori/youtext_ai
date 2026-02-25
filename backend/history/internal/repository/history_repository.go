@@ -9,7 +9,7 @@ import (
 type HistoryRepository interface {
 	Save(ctx context.Context, h *models.History) error
 	FindAll(ctx context.Context) ([]models.History, error)
-	FindByUserID(ctx context.Context, userID int) ([]models.History, error)
+	FindByUserID(ctx context.Context, userID int) ([]models.HistoryResponse, error)
 	DeleteByUserID(ctx context.Context, userID int) error
 	CountByUserID(ctx context.Context, userID int) (int64, error)
 	DeleteByID(ctx context.Context, id int64) (bool, error)
@@ -92,16 +92,16 @@ func (r *historyRepo) FindAll(ctx context.Context) ([]models.History, error) {
 	return histories, nil
 }
 
-func (r *historyRepo) FindByUserID(ctx context.Context, userID int) ([]models.History, error) {
+func (r *historyRepo) FindByUserID(ctx context.Context, userID int) ([]models.HistoryResponse, error) {
 	rows, err := r.db.QueryContext(ctx, "SELECT id, user_id, video_title, link, created_at, summary, transcript FROM history WHERE user_id = $1", userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var histories []models.History
+	var histories []models.HistoryResponse
 	for rows.Next() {
-		var h models.History
+		var h models.HistoryResponse
 		if err := rows.Scan(&h.ID, &h.UserID, &h.VideoTitle, &h.Link, &h.CreatedAt, &h.Summary, &h.Transcript); err != nil {
 			return nil, err
 		}
@@ -114,7 +114,7 @@ func (r *historyRepo) FindByUserID(ctx context.Context, userID int) ([]models.Hi
 	}
 
 	if histories == nil {
-		histories = []models.History{}
+		histories = []models.HistoryResponse{}
 	}
 
 	return histories, nil
@@ -140,8 +140,8 @@ func (r *historyRepo) DeleteByID(ctx context.Context, id int64) (bool, error) {
 	return rowsAffected > 0, nil
 }
 
-func (r *historyRepo) loadRelations(ctx context.Context, h *models.History) error {
-	hlRows, err := r.db.QueryContext(ctx, "SELECT id, highlight FROM highlights WHERE history_id = $1", h.ID)
+func (r *historyRepo) loadRelations(ctx context.Context, h *models.HistoryResponse) error {
+	hlRows, err := r.db.QueryContext(ctx, "SELECT highlight FROM highlights WHERE history_id = $1", h.ID)
 	if err != nil {
 		return err
 	}
@@ -149,11 +149,11 @@ func (r *historyRepo) loadRelations(ctx context.Context, h *models.History) erro
 
 	for hlRows.Next() {
 		var hl models.Highlight
-		if err := hlRows.Scan(&hl.ID, &hl.Highlight); err != nil {
+		if err := hlRows.Scan(&hl.Highlight); err != nil {
 			return err
 		}
 		hl.HistoryID = h.ID
-		h.Highlights = append(h.Highlights, hl)
+		h.Highlights = append(h.Highlights, hl.Highlight)
 	}
 
 	tcRows, err := r.db.QueryContext(ctx, "SELECT id, timecode, descriptions FROM timecodes WHERE history_id = $1", h.ID)

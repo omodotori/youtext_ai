@@ -56,7 +56,7 @@ func (h *history) AddHistory(data models.History) error {
 	return nil
 }
 
-func (h *history) GetHistoryByID(id string) (*[]models.History, error) {
+func (h *history) GetHistoryByID(id string) (*[]models.HistoryResponse, error) {
 	locInstance := "api/history/{user_id}"
 
 	h.logger.Info("%s генерация запроса: %s", instance, locInstance)
@@ -78,7 +78,7 @@ func (h *history) GetHistoryByID(id string) (*[]models.History, error) {
 		return nil, fmt.Errorf("сервер вернул статус %d: %s", resp.StatusCode, string(body))
 	}
 
-	var result []models.History
+	var result []models.HistoryResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("ошибка декодирования JSON: %w", err)
 	}

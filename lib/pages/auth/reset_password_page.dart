@@ -252,9 +252,18 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                         ),
                       ),
-                      validator: (value) => (value == null || value.length < 6)
-                          ? t('Password must be at least 6 chars.', 'Пароль должен быть от 6 символов.')
-                          : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return t('Password is required.', 'Введите пароль.');
+                        }
+                        if (value.length < 8) {
+                          return t('Password must be at least 8 chars.', 'Пароль должен быть не короче 8 символов.');
+                        }
+                        if (value.length > 32) {
+                          return t('Password must not exceed 32 chars.', 'Пароль не должен превышать 32 символа.');
+                        }
+                        return null;
+                      },
                     ),
                   ],
                 ],

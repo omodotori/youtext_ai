@@ -334,15 +334,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: FilledButton.icon(
-            onPressed: widget.onGoogleSignIn,
-            icon: const Icon(Icons.g_mobiledata),
-            label: Text(loc.t('continue_google')),
-          ),
-        ),
+       
       ],
     );
   }
